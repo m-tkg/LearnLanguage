@@ -2,7 +2,8 @@ import Foundation
 import SwiftData
 
 /// セグメントのイラスト生成状態。画像はベストエフォートで生成されるため状態を保持する。
-enum SegmentImageState: String, Codable, Sendable {
+/// SwiftData には raw String（`imageStateRaw`）で保存するため `Codable` 適合は不要。
+enum SegmentImageState: String, Sendable {
     case pending      // 未着手
     case generating   // 生成中
     case ready        // 生成完了（imageData あり）
@@ -10,7 +11,8 @@ enum SegmentImageState: String, Codable, Sendable {
 }
 
 /// 記事（教材）の生成状態。キューで順次処理される。
-enum ArticleStatus: String, Codable, Sendable {
+/// SwiftData には raw String（`statusRaw`）で保存するため `Codable` 適合は不要。
+enum ArticleStatus: String, Sendable {
     case queued       // 待機中（キュー投入済み・未着手）
     case processing   // 取得/書き換え/イラスト生成中
     case failed       // 生成失敗
@@ -28,7 +30,9 @@ final class LearningArticle {
     var title: String
     /// 学習対象言語（BCP-47。例: "en", "fr"）。多言語対応の要。
     var languageCode: String
-    /// 学習者の母語 = 用語集の訳語ターゲット（BCP-47。初期値 "ja"）。
+    /// 作成時点の学習者の母語 = 用語集の訳語言語（BCP-47。初期値 "ja"）。
+    /// 画面上の「本文を翻訳」機能の翻訳先は、この値ではなく設定の現在の母語
+    /// （`@AppStorage("nativeLanguageCode")`）に追従する（設定変更が既存記事にも反映されるように）。
     var translationLanguageCode: String
     /// 目標レベル。1（初級）〜10（上級）。`isOriginal` が true の場合は未使用。
     var targetLevel: Int
@@ -173,17 +177,14 @@ final class ArticleLogEntry {
 final class GlossaryTerm {
     /// 本文中に現れる語形（強調の検索キー）。
     var surface: String
-    /// 見出し語（屈折言語での一致に備える。任意）。
-    var lemma: String?
     /// 母語訳。
     var translation: String
 
     /// 逆参照。
     var segment: ArticleSegment?
 
-    init(surface: String, lemma: String? = nil, translation: String) {
+    init(surface: String, translation: String) {
         self.surface = surface
-        self.lemma = lemma
         self.translation = translation
     }
 }
