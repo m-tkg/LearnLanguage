@@ -251,7 +251,7 @@ private struct IllustrationView: View {
                 Label(placeholderTitle, systemImage: placeholderSymbol)
             } description: {
                 if segment.imageState == .failed, let reason = segment.imageFailureReason {
-                    Text(reason)
+                    Text(LocalizedStringKey(reason))
                 }
             }
         }

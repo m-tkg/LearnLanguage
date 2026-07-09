@@ -171,7 +171,10 @@ private struct HistoryRow: View {
         case .processing:
             Text(article.segments.isEmpty ? LocalizedStringKey("本文を取得中…") : LocalizedStringKey("イラストを生成中…"))
         case .failed:
-            Text("失敗: \(article.failureReason ?? "不明なエラー")").foregroundStyle(.red)
+            // "失敗: " と理由を別々の Text にして、それぞれをローカライズキーとして解決する
+            // （理由が動的な引数を含む文言の場合はキーが一致せず日本語のまま表示される）。
+            (Text("失敗: ") + Text(LocalizedStringKey(article.failureReason ?? "不明なエラー")))
+                .foregroundStyle(.red)
         case .completed:
             HStack(spacing: 8) {
                 Text(LocalizedStringKey(ReadingLevel(storageValue: article.targetLevel, isOriginal: article.isOriginal).shortName))
