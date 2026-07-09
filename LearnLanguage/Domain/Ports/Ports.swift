@@ -1,6 +1,7 @@
 import Foundation
 
-/// URL から記事本文を抽出する。実装は WKWebView + Readability.js（Services/Extraction）。
+/// URL から記事本文を抽出する。実装は素の URLSession 取得 → WKWebView 描画 → Gemini → Jina Reader の
+/// 段階的フォールバック（Services/Extraction/ArticleContentExtractor）。
 protocol ContentExtracting: Sendable {
     func extract(from url: URL) async throws -> ExtractedArticle
 }

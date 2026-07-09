@@ -43,6 +43,11 @@
 - `SharedInbox` / `ErrorEnvelope`（isPerDayLimit 判定）/ `ArticleLogEntry.localizedMessage` もテストなし
 - `ArticleContentExtractor` が「static 関数の集合」になっているのはテスト可能にするための応急処置（設計の歪みがテスト形式に漏れている）
 
+### F. Phase 0 実測で判明した潜在バグ（要調査・本計画のスコープ外）
+- **`LearningArticle.isDeleted` は `save()` を跨ぐと `false` に戻る**（実測: `context.delete(x)` 直後は `isDeleted==true` だが、その後 `try context.save()` すると `isDeleted` が `false` に戻る＝SwiftData のオブジェクトが「未追跡」化する模様）。
+  `GenerationQueue.processBatch`/`illustrateSegments` は処理の合間に頻繁に `try? modelContext.save()` を呼ぶため、**「イラスト生成中にユーザーが記事を削除した」場合に `!article.isDeleted` ガードが検知できない可能性がある**（削除後の最初の save より後のタイミングでは常に false に見える）。
+  実害は「削除したはずの記事の生成が裏で続行され、ゾンビ的にログや画像が書き込まれる」程度で致命的ではないが、Phase 5（GenerationQueue 分割）で本格調査し、必要なら「削除済みかどうかは該当 persistentModelID の存在有無を都度 fetch で確認する」等の確実な判定に置き換える。
+
 ---
 
 ## 1. 方針の選定

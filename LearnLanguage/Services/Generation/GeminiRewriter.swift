@@ -4,7 +4,7 @@ import os
 /// Gemini API（gemini-2.5-flash-lite・テキストは無料枠）で、抽出済み本文をレベル別に書き換える。
 /// tools を使わないため **JSON モード（responseMimeType: application/json）**が効き、構造化出力が安定する。
 /// 複数記事を1リクエストにまとめる `rewriteBatch` を持つ（レート上限対策）。API キーは Keychain（BYOK）。
-struct GeminiRewriter: TextRewriting {
+struct GeminiRewriter: TextRewriting, BatchRewriting {
     private static let logger = Logger(subsystem: "com.mtkg.LearnLanguage", category: "Rewrite")
 
     var model: String = "gemini-2.5-flash-lite"

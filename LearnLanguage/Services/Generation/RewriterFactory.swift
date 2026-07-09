@@ -51,7 +51,7 @@ enum RewriterFactory {
     }
 
     /// Gemini 選択＋キーありのとき、複数記事を1リクエストでまとめる書き換え器を返す。それ以外は nil。
-    static func liveBatchRewriter() -> GeminiRewriter? {
+    static func liveBatchRewriter() -> (any BatchRewriting)? {
         isGeminiSelected ? GeminiRewriter(model: GeminiModel.current) : nil
     }
 

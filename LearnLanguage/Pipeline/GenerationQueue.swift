@@ -16,8 +16,25 @@ final class GenerationQueue {
     /// 1リクエストにまとめる最大件数（レート上限対策）。
     private static let batchSize = 5
 
-    init(modelContext: ModelContext) {
+    /// 抽出/書き換え/イラスト生成の実サービス取得。既定は本番実装（Factory 経由）、
+    /// テストではモックを注入できる（アプリ側の呼び出しは変更不要）。
+    private let makeExtractor: () -> any ContentExtracting
+    private let makeOnDeviceRewriter: () -> any TextRewriting
+    private let makeBatchRewriter: () -> (any BatchRewriting)?
+    private let makeIllustrator: () -> any IllustrationGenerating
+
+    init(
+        modelContext: ModelContext,
+        makeExtractor: @escaping () -> any ContentExtracting = { ArticleContentExtractor() },
+        makeOnDeviceRewriter: @escaping () -> any TextRewriting = { RewriterFactory.live() },
+        makeBatchRewriter: @escaping () -> (any BatchRewriting)? = { RewriterFactory.liveBatchRewriter() },
+        makeIllustrator: @escaping () -> any IllustrationGenerating = { IllustratorFactory.live() }
+    ) {
         self.modelContext = modelContext
+        self.makeExtractor = makeExtractor
+        self.makeOnDeviceRewriter = makeOnDeviceRewriter
+        self.makeBatchRewriter = makeBatchRewriter
+        self.makeIllustrator = makeIllustrator
     }
 
     /// 生成をキューに追加。プレースホルダ記事を即保存して一覧に出し、順次処理を回す。
@@ -91,7 +108,9 @@ final class GenerationQueue {
 
     // MARK: - 処理ループ（直列）
 
-    private func processIfNeeded() async {
+    /// キューを直列で処理する。`enqueue`/`retry`/`resumePending` は `Task { await processIfNeeded() }`
+    /// で fire-and-forget するが、テストはこれを直接 await して決定的に完了を待つ。
+    func processIfNeeded() async {
         guard !isProcessing else { return }
         isProcessing = true
         defer { isProcessing = false }
@@ -128,7 +147,7 @@ final class GenerationQueue {
         let levels = batch.map { ReadingLevel(storageValue: $0.targetLevel, isOriginal: $0.isOriginal) }
 
         // Phase 0: 本文抽出（端末側）。取れた記事は一覧からすぐ入れるよう、この後に本文を反映する。
-        let extractor = ArticleContentExtractor()
+        let extractor = makeExtractor()
         var extracted = [ExtractedArticle?](repeating: nil, count: batch.count)
         for index in 0..<batch.count where !batch[index].isDeleted {
             // 既に書き換え済み（セグメントあり）の記事は中断からの再開 → 再抽出・再書き換えせず、イラストの続きから。
@@ -148,7 +167,7 @@ final class GenerationQueue {
 
         // Phase 1: 書き換え。Gemini 選択時は複数記事を1リクエストにまとめる（JSON モードで安定）。
         var segmentsPerArticle = [[RewrittenSegment]?](repeating: nil, count: batch.count)
-        if let batchRewriter = RewriterFactory.liveBatchRewriter() {
+        if let batchRewriter = makeBatchRewriter() {
             var itemIndices: [Int] = []
             var items: [RewriteBatchItem] = []
             for index in 0..<batch.count {
@@ -182,7 +201,7 @@ final class GenerationQueue {
             }
         } else {
             // オンデバイス（Apple）で個別に書き換え。
-            let rewriter = RewriterFactory.live()
+            let rewriter = makeOnDeviceRewriter()
             for index in 0..<batch.count {
                 guard let ex = extracted[index], !batch[index].isDeleted else { continue }
                 log(batch[index], "本文をレベル別に書き換えています…（オンデバイス）")
@@ -222,7 +241,7 @@ final class GenerationQueue {
         try? modelContext.save()
 
         // Phase 2: 各記事のイラスト生成（逐次保存で一覧/学習画面が随時更新される）。
-        let illustrator = IllustratorFactory.live()
+        let illustrator = makeIllustrator()
         for article in batch {
             guard !article.isDeleted, article.status == .processing, !article.segments.isEmpty else { continue }
             await illustrateSegments(of: article, using: illustrator)
