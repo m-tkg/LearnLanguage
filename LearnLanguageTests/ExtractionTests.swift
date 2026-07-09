@@ -1,7 +1,7 @@
 import XCTest
 @testable import LearnLanguage
 
-/// 本文抽出（Gogai 方式の正規表現抽出）のテスト。
+/// 本文抽出の純関数群（`HTMLContentParser` の正規表現抽出・`JinaReaderFetcher` の応答パース）のテスト。
 final class ExtractionTests: XCTestCase {
 
     func testExtractTextRemovesScriptsAndStyles() {
@@ -9,7 +9,7 @@ final class ExtractionTests: XCTestCase {
         <html><head><style>.x{color:red}</style></head>
         <body><script>bad()</script><p>本文の段落テキスト。</p></body></html>
         """
-        let text = ArticleContentExtractor.extractText(from: html)
+        let text = HTMLContentParser.extractText(from: html)
         XCTAssertFalse(text.contains("bad()"))
         XCTAssertFalse(text.contains("color:red"))
         XCTAssertTrue(text.contains("本文の段落テキスト。"))
@@ -24,7 +24,7 @@ final class ExtractionTests: XCTestCase {
           <footer>Copyright</footer>
         </body>
         """
-        let text = ArticleContentExtractor.extractText(from: html)
+        let text = HTMLContentParser.extractText(from: html)
         XCTAssertTrue(text.contains("real article body"))
         XCTAssertFalse(text.contains("Home Sales Login"))
         XCTAssertFalse(text.contains("Copyright"))
@@ -36,7 +36,7 @@ final class ExtractionTests: XCTestCase {
         let card = "<article><a href=\"/x\"><img src=\"a.jpg\"></a><h2>Some Other Article Title</h2></article>"
         let body = String(repeating: "This is the actual article body sentence. ", count: 30)
         let html = "<body>\(card)\(card)<main><p>\(body)</p></main>\(card)</body>"
-        let text = ArticleContentExtractor.extractText(from: html)
+        let text = HTMLContentParser.extractText(from: html)
         XCTAssertTrue(text.contains("actual article body"))
         XCTAssertFalse(text.contains("Some Other Article Title"))
     }
@@ -51,7 +51,7 @@ final class ExtractionTests: XCTestCase {
           <footer>Copyright 2026</footer>
         </body>
         """
-        let text = ArticleContentExtractor.extractText(from: html)
+        let text = HTMLContentParser.extractText(from: html)
         XCTAssertTrue(text.contains("sixfold expansion"))
         XCTAssertFalse(text.contains("Get Started"))
         XCTAssertFalse(text.contains("Site Header Menu"))
@@ -59,7 +59,7 @@ final class ExtractionTests: XCTestCase {
     }
 
     func testStripHTMLDecodesEntities() {
-        let text = ArticleContentExtractor.stripHTML("<p>Tom &amp; Jerry &#39;s&hellip;</p>")
+        let text = HTMLContentParser.stripHTML("<p>Tom &amp; Jerry &#39;s&hellip;</p>")
         XCTAssertEqual(text, "Tom & Jerry 's…")
     }
 
@@ -68,33 +68,33 @@ final class ExtractionTests: XCTestCase {
         <head><meta property="og:title" content="Real Article Title">
         <title>Real Article Title | Some Site</title></head>
         """
-        XCTAssertEqual(ArticleContentExtractor.extractTitle(from: html), "Real Article Title")
+        XCTAssertEqual(HTMLContentParser.extractTitle(from: html), "Real Article Title")
     }
 
     func testExtractLang() {
-        XCTAssertEqual(ArticleContentExtractor.extractLang(from: "<html lang=\"en-US\">"), "en-US")
+        XCTAssertEqual(HTMLContentParser.extractLang(from: "<html lang=\"en-US\">"), "en-US")
     }
 
     // MARK: - ブロック検知
 
     func testDetectsCloudflareBlockByText() {
-        XCTAssertTrue(ArticleContentExtractor.looksBlocked(
+        XCTAssertTrue(HTMLContentParser.looksBlocked(
             text: "Sorry, you have been blocked. Please enable cookies.",
             title: "Access denied"))
     }
 
     func testDetectsCloudflareBlockByTitle() {
-        XCTAssertTrue(ArticleContentExtractor.looksBlocked(
+        XCTAssertTrue(HTMLContentParser.looksBlocked(
             text: "short", title: "Attention Required! | Cloudflare"))
     }
 
     func testLongArticleMentioningCloudflareIsNotBlocked() {
         let article = String(repeating: "Cloudflare is a CDN and security company. ", count: 100)
-        XCTAssertFalse(ArticleContentExtractor.looksBlocked(text: article, title: "About CDNs"))
+        XCTAssertFalse(HTMLContentParser.looksBlocked(text: article, title: "About CDNs"))
     }
 
     func testNormalContentIsNotBlocked() {
-        XCTAssertFalse(ArticleContentExtractor.looksBlocked(
+        XCTAssertFalse(HTMLContentParser.looksBlocked(
             text: "This is a normal article about 3D printing and drones.",
             title: "3D Printing Boom"))
     }
@@ -112,7 +112,7 @@ final class ExtractionTests: XCTestCase {
         This is the body.
         Second paragraph.
         """
-        let (title, content) = ArticleContentExtractor.parseReaderResponse(body)
+        let (title, content) = JinaReaderFetcher.parseReaderResponse(body)
         XCTAssertEqual(title, "The Drone Boom")
         XCTAssertTrue(content.hasPrefix("This is the body."))
         XCTAssertFalse(content.contains("URL Source"))
@@ -120,7 +120,7 @@ final class ExtractionTests: XCTestCase {
 
     func testCleanMarkdownStripsImagesAndLinks() {
         let md = "![alt](https://img) See [the report](https://x) now. # Heading"
-        let cleaned = ArticleContentExtractor.cleanMarkdown(md)
+        let cleaned = JinaReaderFetcher.cleanMarkdown(md)
         XCTAssertFalse(cleaned.contains("https://img"))
         XCTAssertTrue(cleaned.contains("the report"))
         XCTAssertFalse(cleaned.contains("]("))
@@ -129,7 +129,7 @@ final class ExtractionTests: XCTestCase {
 
     func testDetectLanguage() {
         XCTAssertEqual(
-            ArticleContentExtractor.detectLanguage("This is clearly an English sentence about drones."),
+            HTMLContentParser.detectLanguage("This is clearly an English sentence about drones."),
             "en")
     }
 }
