@@ -135,47 +135,30 @@ struct ArticleContentExtractor: ContentExtracting {
     // MARK: - Gemini（url_context）フォールバック
 
     /// Gemini の url_context ツールで URL を読ませ、本文テキストを取得する。API キーは Keychain から。
+    /// HTTP 送受信・リトライ・エラー分類は `GeminiClient` に委譲する（tools 使用時は JSON モード非対応のため
+    /// プレーンテキストで応答させ、1行目をタイトル・残りを本文として分ける）。
     static func extractViaGemini(url: URL, model: String = GeminiModel.current) async throws -> ExtractedArticle {
-        let key = KeychainStore.get(account: KeychainStore.geminiAPIKeyAccount)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !key.isEmpty else {
-            throw ExtractionError.blocked
-        }
-        let endpoint = URL(
-            string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent"
-        )!
-
         let prompt = """
         Read the article at \(url.absoluteString) and extract its main content. \
         Respond in plain text as: the article title on the first line, then a blank line, \
         then the full article body text. Exclude navigation, related links, ads, and boilerplate.
         """
-        let requestBody: [String: Any] = [
-            "contents": [["parts": [["text": prompt]]]],
-            "tools": [["url_context": [String: String]()]],
-        ]
-        var request = URLRequest(url: endpoint, timeoutInterval: 120)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(key, forHTTPHeaderField: "x-goog-api-key")
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200,
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let candidates = json["candidates"] as? [[String: Any]],
-              let content = candidates.first?["content"] as? [String: Any],
-              let parts = content["parts"] as? [[String: Any]] else {
+        let key = KeychainStore.get(account: KeychainStore.geminiAPIKeyAccount)
+        let requestBody = URLContextRequest(
+            contents: [.init(parts: [.init(text: prompt)])],
+            tools: [.init()]
+        )
+        guard let data = try? await GeminiClient.send(model: model, body: requestBody, apiKey: key, timeout: 120),
+              let raw = GeminiClient.firstText(from: data)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty else {
             throw ExtractionError.blocked
         }
-        let raw = parts.compactMap { $0["text"] as? String }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !raw.isEmpty else { throw ExtractionError.emptyContent }
 
         // 1 行目をタイトル、残りを本文として分ける。
         let lines = raw.components(separatedBy: "\n")
         let title = lines.first?.trimmingCharacters(in: .whitespaces)
-        let body = lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-        let text = body.isEmpty ? raw : body
+        let bodyText = lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = bodyText.isEmpty ? raw : bodyText
         guard text.count >= minUsableLength else { throw ExtractionError.emptyContent }
 
         return ExtractedArticle(
@@ -418,4 +401,18 @@ struct ArticleContentExtractor: ContentExtracting {
         let hasMarker = markers.contains { lowered.contains($0) }
         return hasMarker && text.count < 2000
     }
+}
+
+// MARK: - Codable（Gemini url_context リクエスト）
+
+private struct URLContextRequest: Encodable {
+    struct Part: Encodable { let text: String }
+    struct Content: Encodable { let parts: [Part] }
+    struct Tool: Encodable {
+        struct URLContext: Encodable {}
+        var urlContext = URLContext()
+        enum CodingKeys: String, CodingKey { case urlContext = "url_context" }
+    }
+    let contents: [Content]
+    let tools: [Tool]
 }

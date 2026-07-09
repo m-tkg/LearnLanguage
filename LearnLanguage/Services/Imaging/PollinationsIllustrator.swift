@@ -44,9 +44,7 @@ struct PollinationsIllustrator: IllustrationGenerating {
 
     /// 学習向けスタイルを付与したプロンプト。
     static func styledPrompt(_ prompt: String) -> String {
-        "\(prompt). 2D Japanese anime style illustration, clean line art, cel shading, soft vibrant colors, "
-            + "friendly and appealing, a detailed and descriptive scene that clearly depicts the situation "
-            + "so the content is easy to understand at a glance, no text or letters"
+        "\(prompt). \(IllustrationPrompt.baseStyle), no text or letters"
     }
 
     /// Pollinations の画像 URL を組み立てる（プロンプトはパスに percent-encode して埋め込む）。
