@@ -75,7 +75,7 @@
 
 ## 2. フェーズ計画
 
-### Phase 0: 安全網の構築（テストで現行挙動を固定）
+### Phase 0: 安全網の構築（テストで現行挙動を固定） ✅ 完了
 **目的**: 最重要ロジックに特性化テスト（characterization tests）を張り、以降のフェーズの回帰を検出可能にする。
 
 - `GenerationQueue` に **最小限の DI を導入**（コンストラクタで extractor / rewriter / illustrator の生成クロージャを受け取り、既定値は現行の Factory 呼び出し。呼び出し側の変更なし）
@@ -95,7 +95,7 @@
 
 ---
 
-### Phase 1: 死んだコードの削除
+### Phase 1: 死んだコードの削除 ✅ 完了
 **目的**: 考慮対象を減らし、以降のフェーズを軽くする。
 
 削除対象（すべて参照ゼロ確認済み・上記 0-A）:
@@ -109,7 +109,9 @@
 **完了条件**: `xcodegen generate` + 全テスト green。行数 約150行減。
 **リスク**: 低。
 
----### Phase 2: Gemini クライアントの統一
+---
+
+### Phase 2: Gemini クライアントの統一 ✅ 完了
 **目的**: 3重実装の HTTP クライアントを1つにし、429/PerDay/リトライの挙動を全 API 呼び出しで一貫させる。
 
 #### 設計の比較
@@ -134,29 +136,36 @@
 
 ---
 
-### Phase 3: ユーザー向け文言の一元化とローカライズ
-**目的**: Services 層の日本語ハードコード（10ファイル）を解消し、`failureReason` 系も英語端末で英語表示にする（ログで導入済みの方式へ対称化）。
+### Phase 3: ユーザー向け文言の一元化とローカライズ ✅ 完了（実施内容は当初案から変更）
+**目的**: `failureReason` 系も英語端末で英語表示にする（ログで導入済みの方式へ対称化）。
 
-#### 保存済みエラー文言の扱い
-| 案 | 内容 | メリット | デメリット |
-|---|---|---|---|
-| **案A: key+args 方式へ統一（採用）** | エラーを `AppError`（enum, `errorKey`/`args` を持つ）に寄せ、`failureReason`/`imageFailureReason` を `messageKey`+`messageArgs` 保存に変更（`ArticleLogEntry` と同型） | 言語切替に完全追従・ログと同じ規範で学習コスト低 | SwiftData プロパティ追加（デフォルト値付きで軽量マイグレーション） |
-| 案B: 表示時に既知文字列を逆引き翻訳 | 保存は現状のまま | スキーマ変更なし | 部分一致の泥沼・新エラー追加のたび逆引き表を保守 |
-| 案C: エラーは英語のみで保存 | 簡単 | 日本語端末で英語エラー。要件（日英対応）に反する |
+#### 実施内容（軽量版・当初の案Aから変更）
+当初は案A（`AppError` + key/args へのスキーマ移行）を採用する計画だったが、実装に着手した時点で
+**固定文（引数なし）のエラー文はそのまま安定した一意な日本語文字列である**ことに気づき、
+それを直接 `Localizable.xcstrings` のキーとして登録し、表示側で `LocalizedStringKey` に通すだけで
+同じ実用上のゴール（英語端末で英語表示）に達成できると判明したため、こちらを採用した。
 
-**案A採用。破綻する未来**: 母語追加（中国語等）で xcstrings の翻訳が増えるだけで構造は破綻しない。エラーに構造化データ（HTTPコード等）を UI で使い分けたくなったら、key+args では不足 → その時は `failureCode: Int?` カラムを足す。
+- スキーマ変更なし（`failureReason`/`imageFailureReason` は `String?` のまま）
+- 各サービスの `LocalizedError` 実装はコード変更なし（既存の日本語確定文をそのまま使う）
+- `HistoryView`: `Text("失敗: ") + Text(LocalizedStringKey(reason))` のように 2 つの `Text` を連結し、
+  ラベルと理由をそれぞれ独立してローカライズ解決
+- `ReaderView`: イラスト失敗理由の `Text(reason)` を `Text(LocalizedStringKey(reason))` に変更
+- HTTP ステータスコードや Gemini の生エラーメッセージなど**動的な引数を含む文言は非対象**
+  （一致するキーが無ければ `LocalizedStringKey` は元の文字列にフォールバックするだけで実害はない。
+  日本語のまま表示され続けるのみ）
 
-作業:
-1. `Shared/AppError.swift` 新設: ドメイン横断のエラー enum（`.extractionBlocked` / `.rewriteQuotaDaily` / `.geminiAuth` / `.network(String)` 等）。`localizedKey: String` と `args: [String]` を提供
-2. 各サービスの `LocalizedError` 実装（RewriteError / ExtractionError / TranslationError / Illustration の reason 文字列）を AppError へ統合 or key 返却に変更
-3. `LearningArticle.failureReason` → `failureKey`+`failureArgs`（デフォルト値付きで追加、旧 `failureReason` は読み取り互換のため1リリース残して表示側でフォールバック）
-4. `ArticleSegment.imageFailureReason` も同様
-5. HistoryView / ReaderView / ArticleLogView の表示を localized 解決に変更
-6. xcstrings へ全エラーキー追加（en 訳含む）
-7. Mock の日本語（"モック: 画像なし" 等）も整理
+**当初案Aとの差分**: 「grep -rln '[ぁ-ん]' LearnLanguage/Services が 0 件」という完了条件は
+Services 内のコード自体は変更していないため達成していない（意図的）。実質的なゴール
+（英語端末で固定エラー文が英語表示される）は達成し、`en.lproj/Localizable.strings` への
+コンパイル結果で確認済み。Mock の日本語整理は Phase 1 で `MockServices.swift` 自体を
+削除済みのため対象消滅。
 
-**完了条件**: `grep -rln '[ぁ-ん]' LearnLanguage/Services` が 0 件（コメントを除く）。英語端末でエラー・状態・ログ全てが英語。
-**リスク**: 中。スキーマ追加はデフォルト値付きプロパティのみ（SwiftData 軽量マイグレーションの安全圏）。実機で既存データの表示を確認。
+**案Aが必要になる未来**: エラーに構造化データ（HTTP ステータスコード等）を UI で使い分けたい
+（例: 401 のときだけ「設定を開く」ボタンを出す）場合は、今回の文字列ベースの方式では対応できない
+→ その時初めて `AppError` + key/args ヘの本格移行（元の案A）に切り替える。
+
+**完了条件**: 固定エラー文言が en.lproj にコンパイルされている（確認済み）。
+**リスク**: 低（表示層のみの変更、スキーマ・サービスロジック共に無変更）。
 
 ---
 
