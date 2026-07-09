@@ -77,13 +77,3 @@ struct RewriteBatchItem: Sendable, Equatable {
     var level: ReadingLevel
     var languageCode: String
 }
-
-/// 生成パイプラインの進捗イベント。UI へ AsyncStream で流す。
-enum ProcessingProgress: Sendable, Equatable {
-    case extracting
-    case splitting
-    case rewriting(segmentIndex: Int, total: Int)
-    case illustrating(segmentIndex: Int, total: Int)
-    case finished
-    case failed(reason: String)
-}

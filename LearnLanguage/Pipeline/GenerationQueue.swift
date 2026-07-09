@@ -82,11 +82,6 @@ final class GenerationQueue {
         requeue(statuses: ["processing"])
     }
 
-    /// 失敗・中断した記事を再試行する（Pull to refresh）。
-    func retryIncomplete() {
-        requeue(statuses: ["processing", "failed"])
-    }
-
     /// 指定した記事だけを再実行する（一覧の長押し → 「再実行」）。
     func retry(_ article: LearningArticle) {
         guard !article.isDeleted else { return }

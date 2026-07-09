@@ -5,7 +5,7 @@ import AVFoundation
 /// サイレントスイッチを無視して再生し、読み上げ中かどうかを `isSpeaking` で公開する。
 @MainActor
 @Observable
-final class SpeechService: NSObject, Speaking, AVSpeechSynthesizerDelegate {
+final class SpeechService: NSObject, AVSpeechSynthesizerDelegate {
     private let synthesizer = AVSpeechSynthesizer()
 
     /// 現在読み上げ中か（ボタン表示の切り替えに使う）。

@@ -34,12 +34,3 @@ protocol BatchRewriting: Sendable {
 protocol IllustrationGenerating: Sendable {
     func illustrate(prompt: String) async -> IllustrationResult
 }
-
-/// 本文の読み上げ。実装は AVSpeechSynthesizer（Services/Speech）。
-@MainActor
-protocol Speaking: AnyObject {
-    /// - Parameters:
-    ///   - rate: 読み上げ速度（0.0...1.0 目安、実装側で AVSpeechUtterance へ写像）。
-    func speak(_ text: String, languageCode: String, rate: Float)
-    func stop()
-}
