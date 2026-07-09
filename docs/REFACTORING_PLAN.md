@@ -191,7 +191,7 @@ Services/Extraction/
 
 ---
 
-### Phase 5: GenerationQueue の分割
+### Phase 5: GenerationQueue の分割 ✅ 完了
 **目的**: 282行の god object を「キュー制御」「バッチ処理」「記録」に分離し、Phase 0 のテストを維持したまま内部を差し替える。
 
 ```
