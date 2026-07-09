@@ -1,0 +1,44 @@
+import Foundation
+
+/// URL から記事本文を抽出する。実装は WKWebView + Readability.js（Services/Extraction）。
+protocol ContentExtracting: Sendable {
+    func extract(from url: URL) async throws -> ExtractedArticle
+}
+
+/// 記事本文をセグメントに分割し、各セグメントを指定レベルへ書き換える。
+/// 実装は FoundationModels（Services/Generation）。多言語に備え言語コードを引数に取る。
+protocol TextRewriting: Sendable {
+    /// 抽出済み本文を 3〜4 セグメントに分割し、各セグメントを書き換える。
+    /// - Parameters:
+    ///   - text: 抽出済みプレーンテキスト。
+    ///   - level: 目標レベル。`.original` の場合は分割のみで書き換えない。
+    ///   - languageCode: 学習対象言語（BCP-47）。文分割・書き換え言語に使う。
+    ///   - nativeLanguageCode: 学習者母語（用語集の訳語ターゲット, BCP-47）。
+    func rewrite(
+        text: String,
+        level: ReadingLevel,
+        languageCode: String,
+        nativeLanguageCode: String
+    ) async throws -> [RewrittenSegment]
+}
+
+/// 複数記事の本文をまとめて 1 リクエストで書き換える（レート上限対策）。実装は Gemini のみ
+/// （オンデバイスは `TextRewriting.rewrite` で 1 記事ずつ処理する）。
+protocol BatchRewriting: Sendable {
+    func rewriteBatch(_ items: [RewriteBatchItem], nativeLanguageCode: String) async throws -> [[RewrittenSegment]?]
+}
+
+/// 短い視覚プロンプトからイラストを生成する。実装はクラウド（Gemini, Services/Imaging）。
+/// iOS の ImageCreator は iOS 27 で notSupported のため、クラウド API に一本化している。
+protocol IllustrationGenerating: Sendable {
+    func illustrate(prompt: String) async -> IllustrationResult
+}
+
+/// 本文の読み上げ。実装は AVSpeechSynthesizer（Services/Speech）。
+@MainActor
+protocol Speaking: AnyObject {
+    /// - Parameters:
+    ///   - rate: 読み上げ速度（0.0...1.0 目安、実装側で AVSpeechUtterance へ写像）。
+    func speak(_ text: String, languageCode: String, rate: Float)
+    func stop()
+}
