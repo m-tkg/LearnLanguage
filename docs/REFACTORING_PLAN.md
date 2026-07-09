@@ -212,7 +212,7 @@ Pipeline/
 
 ---
 
-### Phase 6: UI 層の整理
+### Phase 6: UI 層の整理 ✅ 完了（実機での見た目/挙動確認は未実施）
 **目的**: 巨大 View の分割と、散在するローカライズ呼び出しパターンの集約。挙動変更なし。
 
 - `ReaderView.swift`（304行）→ `Reader/` 配下に分割: `ReaderView` / `SegmentPageView` / `IllustrationView` / `PlaybackControls` / `TranslationSection`（+翻訳ロジックを `TranslationController`(@Observable) へ）
