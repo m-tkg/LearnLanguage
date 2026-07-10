@@ -21,8 +21,8 @@ struct HomeView: View {
                 Section("記事") {
                     TextField("記事の URL", text: $model.urlString)
                         .textContentType(.URL)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
+                        .urlKeyboard()
+                        .noAutocapitalization()
                         .autocorrectionDisabled()
                 }
 
@@ -64,8 +64,9 @@ struct HomeView: View {
                     }
                 }
             }
+            .formStyle(.grouped)
             .navigationTitle("記事を追加")
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationBarTitle()
             .onAppear {
                 level = defaultLevel
                 targetLanguage = defaultTargetLanguage

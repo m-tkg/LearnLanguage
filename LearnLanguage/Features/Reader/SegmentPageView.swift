@@ -44,8 +44,7 @@ struct SegmentPageView: View {
                 glossaryTranslation: glossaryTranslation(for: selection.word),
                 nativeLanguageCode: nativeLanguageCode
             )
-            .presentationDetents([.height(200)])
-            .presentationDragIndicator(.visible)
+            .compactSheetPresentation()
         }
     }
 

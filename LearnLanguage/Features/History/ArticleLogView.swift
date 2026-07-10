@@ -59,7 +59,7 @@ struct ArticleLogView: View {
                 }
             }
             .navigationTitle("処理ログ")
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationBarTitle()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("閉じる") { dismiss() }

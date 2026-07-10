@@ -14,7 +14,15 @@ enum SharedInbox {
     static let appGroupID = "group.com.mtkg.LearnLanguage"
     private static let key = "pendingShares"
 
-    private static var defaults: UserDefaults? { UserDefaults(suiteName: appGroupID) }
+    private static var defaults: UserDefaults? {
+        // App Group は iOS（メインアプリ + Share Extension）のみ。macOS はシェア機能未対応で、
+        // エンタイトルメント無しに suiteName へアクセスするとサンドボックス違反になるため常に nil。
+        #if os(iOS)
+        UserDefaults(suiteName: appGroupID)
+        #else
+        nil
+        #endif
+    }
 
     /// 共有された URL と選択された難易度を受信箱に追加する（Extension 側）。
     static func append(url: URL, levelStorageValue: Int) {

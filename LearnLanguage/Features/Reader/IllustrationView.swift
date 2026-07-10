@@ -5,9 +5,9 @@ struct IllustrationView: View {
     let segment: ArticleSegment
 
     var body: some View {
-        if let data = segment.imageData, let uiImage = UIImage(data: data) {
+        if let data = segment.imageData, let image = Image(data: data) {
             // 縦横比を保ったまま枠内に収める（横向きなど枠が横長でも歪ませない）。
-            Image(uiImage: uiImage)
+            image
                 .resizable()
                 .scaledToFit()
         } else if segment.imageState == .generating || segment.imageState == .pending {

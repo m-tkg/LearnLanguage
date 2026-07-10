@@ -27,8 +27,8 @@ struct HistoryRow: View {
         ZStack {
             let sorted = article.segments.sorted { $0.order < $1.order }
             if let data = sorted.first(where: { $0.imageData != nil })?.imageData,
-               let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
+               let image = Image(data: data) {
+                image
                     .resizable()
                     .scaledToFill()
             } else {

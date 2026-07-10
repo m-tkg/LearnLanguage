@@ -1,7 +1,7 @@
 # LearnLanguage
 
 記事 URL を渡すと、AI が語彙レベルに合わせて本文を書き換え、内容を説明するイラストを付けた
-語学教材を自動生成する iOS/iPadOS アプリ。読み上げ・母語訳・用語集付きで、生成した教材は
+語学教材を自動生成する iOS/iPadOS/macOS アプリ。読み上げ・母語訳・用語集付きで、生成した教材は
 端末内に蓄積される。まずは英語学習向け（将来多言語対応を見据えた設計）。
 
 ## 主な機能
@@ -15,8 +15,16 @@
 
 ## 動作環境
 
-- iOS 26+ / Apple Intelligence 対応端末（オンデバイス書き換え・翻訳を使う場合）
+- iOS 26+ / macOS 26+ / Apple Intelligence 対応端末（オンデバイス書き換え・翻訳を使う場合）
 - Xcode 27+ / [xcodegen](https://github.com/yonaskolb/XcodeGen)
+
+### macOS 版の差分
+
+ネイティブ SwiftUI マルチプラットフォーム（Mac Catalyst ではない）。iOS 版とほぼ同機能だが:
+
+- **シェアシート（Share Extension）は非対応**（記事の追加はアプリ内の＋ボタンから）
+- 「元記事を開く」はアプリ内ブラウザではなく**既定のブラウザ**で開く
+- 学習画面のセグメント送りはスワイプではなく**前後ボタン**
 
 ## セットアップ
 
@@ -72,15 +80,19 @@ Production へのデプロイは取り消せない（追加のみ可・削除不
 
 すべてアプリ内の設定画面から入力する。
 
-## リリース（Xcode Cloud → TestFlight）
+## リリース（Xcode Cloud → TestFlight。iOS / macOS 共通）
 
-ビルドは Xcode Cloud、トリガーは **タグの push**。日常のリリース手順：
+ビルドは Xcode Cloud、トリガーは **タグの push**。iOS 版・macOS 版とも同じタグから同じ
+ワークフローでビルド・TestFlight 配布される。日常のリリース手順：
 
 1. `project.yml` の `CURRENT_PROJECT_VERSION` を +1（表示バージョンを変えるなら
    `MARKETING_VERSION` も）。同一ビルド番号は App Store Connect に弾かれる（ITMS-90382）
 2. コミットして `main` へ push
 3. `make release-tag` を実行 → `v<MARKETING_VERSION>` タグが push され、Xcode Cloud が
    ビルド → TestFlight 配布する（ブランチ・作業ツリー・タグ重複の安全チェック付き）
+
+Mac へのインストールは Mac App Store の **TestFlight アプリ**から行う（自動更新もそちら任せ。
+アプリ内に更新チェック機能は持たない）。
 
 ### Xcode Cloud ワークフローの初回設定（App Store Connect 側・リポジトリ外）
 
@@ -97,11 +109,29 @@ Production へのデプロイは取り消せない（追加のみ可・削除不
 5. 輸出コンプライアンスは `project.yml` で宣言済み（HTTPS のみ使用・免除）のため、
    ビルドごとの Missing Compliance 回答は不要
 
+### macOS 版の追加設定（初回のみ・App Store Connect 側）
+
+1. App Store Connect のアプリページ左上のプラットフォーム選択 →
+   **「+」から macOS を追加**（同一 Bundle ID のユニバーサル購入）
+2. 既存の Xcode Cloud ワークフローを編集し、**Archive - macOS アクションを追加**
+   （Deployment Preparation: TestFlight。Start Condition は iOS と共通のまま）
+3. Mac 側で App Store から **TestFlight** アプリを入れ、招待を受けてインストール
+
+macOS 版は App Sandbox 必須のため、エンタイトルメントはプラットフォーム別
+（`LearnLanguage/LearnLanguage-macOS.entitlements`。iOS と違い `aps-environment` キー名に
+`com.apple.developer.` プレフィックスが付く）。CloudKit / iCloud KVS / iCloud キーチェーンの
+同期は macOS でも有効（同じ Apple ID でサインインしていること）。
+
 ## ビルド・テスト
 
 ```sh
+# iOS
 xcodebuild -project LearnLanguage.xcodeproj -scheme LearnLanguage \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' test
+
+# macOS（ネイティブ）
+xcodebuild -project LearnLanguage.xcodeproj -scheme LearnLanguage \
+  -destination 'platform=macOS' test
 ```
 
 FoundationModels・画像生成・WKWebView 描画は Simulator で完全には検証できないため、

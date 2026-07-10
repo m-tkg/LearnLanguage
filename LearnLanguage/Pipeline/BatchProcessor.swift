@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
+#if canImport(UIKit)
 import UIKit
+#endif
 import os
 
 /// キューの 1 バッチ（本文抽出 → 書き換え → イラスト生成）の実処理。`GenerationQueue` から
@@ -45,9 +47,12 @@ struct BatchProcessor {
         }
         try? modelContext.save()
 
-        // バックグラウンドに回っても ~30 秒は継続できるよう保険をかける。
+        // バックグラウンドに回っても ~30 秒は継続できるよう保険をかける（iOS のみ。
+        // macOS はウィンドウが背面でもプロセスが動き続けるため不要）。
+        #if canImport(UIKit)
         let taskID = UIApplication.shared.beginBackgroundTask(withName: "GenerateBatch")
         defer { if taskID != .invalid { UIApplication.shared.endBackgroundTask(taskID) } }
+        #endif
 
         let native = batch.first?.translationLanguageCode ?? "ja"
         let levels = batch.map { ReadingLevel(storageValue: $0.targetLevel, isOriginal: $0.isOriginal) }

@@ -88,7 +88,7 @@ struct SettingsView: View {
                 if imageProvider == ImageProvider.pollinations.rawValue {
                     Section {
                         SecureField("Pollinations API キー（任意）", text: $pollinationsAPIKey)
-                            .textInputAutocapitalization(.never)
+                            .noAutocapitalization()
                             .autocorrectionDisabled()
                         Button("保存") {
                             KeychainStore.set(pollinationsAPIKey, account: KeychainStore.pollinationsAPIKeyAccount)
@@ -106,10 +106,10 @@ struct SettingsView: View {
                 if imageProvider == ImageProvider.cloudflare.rawValue {
                     Section {
                         TextField("Account ID", text: $cloudflareAccountID)
-                            .textInputAutocapitalization(.never)
+                            .noAutocapitalization()
                             .autocorrectionDisabled()
                         SecureField("API トークン", text: $cloudflareAPIToken)
-                            .textInputAutocapitalization(.never)
+                            .noAutocapitalization()
                             .autocorrectionDisabled()
                         Button("保存") {
                             KeychainStore.set(cloudflareAccountID, account: KeychainStore.cloudflareAccountIDAccount)
@@ -130,7 +130,7 @@ struct SettingsView: View {
                 if usesGemini {
                     Section {
                         SecureField("Gemini API キー", text: $geminiAPIKey)
-                            .textInputAutocapitalization(.never)
+                            .noAutocapitalization()
                             .autocorrectionDisabled()
                         Button("保存") {
                             KeychainStore.set(geminiAPIKey, account: KeychainStore.geminiAPIKeyAccount)
@@ -157,6 +157,7 @@ struct SettingsView: View {
                     Text("学習画面の読み上げの初期速度です。学習画面でも変更できます。")
                 }
             }
+            .formStyle(.grouped)
             .navigationTitle("設定")
             .toast("保存しました", isPresented: $showingSavedToast)
             .onAppear {

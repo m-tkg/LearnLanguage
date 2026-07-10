@@ -70,10 +70,13 @@ struct HistoryView: View {
             }
             .navigationTitle("記事")
             .toolbar {
+                // EditButton（編集モード）は iOS 専用。macOS は行のドラッグ/コンテキストメニューで代替できる。
+                #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {
                     if !articles.isEmpty { EditButton() }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                #endif
+                ToolbarItem(placement: .primaryAction) {
                     Button {
                         showingAdd = true
                     } label: {

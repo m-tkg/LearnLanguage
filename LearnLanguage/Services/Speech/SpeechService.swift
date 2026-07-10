@@ -58,11 +58,14 @@ final class SpeechService: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.stopSpeaking(at: .immediate)
     }
 
-    /// サイレント（消音）スイッチが ON でも再生されるよう、再生用カテゴリを有効化する。
+    /// サイレント（消音）スイッチが ON でも再生されるよう、再生用カテゴリを有効化する
+    /// （AVAudioSession は iOS 専用。macOS には消音スイッチが無くセッション設定も不要）。
     private static func activatePlaybackSession() {
+        #if os(iOS)
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, mode: .spokenAudio, options: [])
         try? session.setActive(true)
+        #endif
     }
 
     /// 0.0...1.0 の速度指定を AVSpeechUtterance の rate 範囲へ線形写像する（0.5 で中間）。
