@@ -79,8 +79,9 @@ struct CloudflareIllustrator: IllustrationGenerating {
 
     private struct GenerateRequest: Encodable {
         let prompt: String
-        /// 推論ステップ数（schnell は最大 8。多いほど描写が安定する）。
-        var steps: Int = 8
+        /// 推論ステップ数。schnell は 4 ステップ蒸留モデルで 4 が推奨値。
+        /// 8（上限）だと 96 Neurons/枚、4 だと 57.6 Neurons/枚で無料枠(10,000/日)の持ちが約1.7倍になる。
+        var steps: Int = 4
     }
 
     private struct GenerateResponse: Decodable {
