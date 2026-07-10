@@ -59,7 +59,10 @@ final class GenerationQueueTests: XCTestCase {
 
     private func makeContext() throws -> ModelContext {
         let schema = Schema([LearningArticle.self, ArticleSegment.self, GlossaryTerm.self, ArticleLogEntry.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        // cloudKitDatabase の既定は .automatic で、アプリに iCloud entitlement があると
+        // in-memory でも CloudKit ミラーリングを試みてしまう（アカウント無しの CI/Simulator で落ちる）
+        // → テストでは明示的に .none。
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return ModelContext(container)
     }

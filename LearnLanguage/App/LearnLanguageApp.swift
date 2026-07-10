@@ -32,7 +32,9 @@ struct LearnLanguageApp: App {
         .environment(queue)
     }
 
-    /// SwiftData コンテナを構築する。マイグレーション失敗時はストアを作り直して起動を優先する。
+    /// SwiftData コンテナを構築する。記事データは CloudKit（プライベート DB）で端末間同期する。
+    /// CloudKit コンテナが使えない環境（未署名ビルド・iCloud 障害等）ではローカルのみに
+    /// フォールバックし、それも失敗（マイグレーション等）ならストアを作り直して起動を優先する。
     private static func makeModelContainer() -> ModelContainer {
         let schema = Schema([
             LearningArticle.self,
@@ -40,17 +42,25 @@ struct LearnLanguageApp: App {
             GlossaryTerm.self,
             ArticleLogEntry.self,
         ])
-        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
-        if let container = try? ModelContainer(for: schema, configurations: [configuration]) {
+        // 1. CloudKit 同期付き（entitlements の iCloud コンテナを自動使用）。
+        let cloud = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .automatic)
+        if let container = try? ModelContainer(for: schema, configurations: [cloud]) {
             return container
         }
-        // マイグレーション失敗等 → 既存ストアを削除して作り直す（履歴は失われるが起動を優先）。
-        let storeURL = configuration.url
+
+        // 2. ローカルのみ（既存データは保持したまま同期だけ諦める）。
+        let localOnly = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .none)
+        if let container = try? ModelContainer(for: schema, configurations: [localOnly]) {
+            return container
+        }
+
+        // 3. マイグレーション失敗等 → 既存ストアを削除して作り直す（履歴は失われるが起動を優先）。
+        let storeURL = localOnly.url
         for suffix in ["", "-wal", "-shm"] {
             try? FileManager.default.removeItem(at: URL(fileURLWithPath: storeURL.path + suffix))
         }
-        if let container = try? ModelContainer(for: schema, configurations: [configuration]) {
+        if let container = try? ModelContainer(for: schema, configurations: [localOnly]) {
             return container
         }
         let memory = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)

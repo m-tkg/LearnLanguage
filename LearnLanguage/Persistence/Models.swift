@@ -20,30 +20,34 @@ enum ArticleStatus: String, Sendable {
 }
 
 /// 1 本の学習記事。元 URL・元本文・レベル・お気に入りなどのメタと、順序付きセグメントを持つ。
+///
+/// - Note: CloudKit 同期（`cloudKitDatabase`）の要件に合わせ、**全属性にデフォルト値**を持たせ、
+///   **リレーションは optional のストレージ＋non-optional の computed ラッパ**で表現している
+///   （CloudKit は unique 制約・非 optional リレーション・デフォルト値なし属性を許さない）。
 @Model
 final class LearningArticle {
     /// アプリ内で安定して参照するための ID（永続 ID とは別に保持）。
-    var id: UUID
+    var id: UUID = UUID()
     /// 元記事の URL。
-    var sourceURL: URL
+    var sourceURL: URL = URL(string: "about:blank")!
     /// 記事タイトル（抽出結果 or フォールバック）。
-    var title: String
+    var title: String = ""
     /// 学習対象言語（BCP-47。例: "en", "fr"）。多言語対応の要。
-    var languageCode: String
+    var languageCode: String = "en"
     /// 作成時点の学習者の母語 = 用語集の訳語言語（BCP-47。初期値 "ja"）。
     /// 画面上の「本文を翻訳」機能の翻訳先は、この値ではなく設定の現在の母語
     /// （`@AppStorage("nativeLanguageCode")`）に追従する（設定変更が既存記事にも反映されるように）。
-    var translationLanguageCode: String
+    var translationLanguageCode: String = "ja"
     /// 目標レベル。1（初級）〜10（上級）。`isOriginal` が true の場合は未使用。
-    var targetLevel: Int
+    var targetLevel: Int = 1
     /// 「オリジナル」指定（書き換えをスキップし元本文を分割のみ）。
-    var isOriginal: Bool
+    var isOriginal: Bool = false
     /// 抽出した元本文（プレーンテキスト）。
-    var originalText: String
+    var originalText: String = ""
     /// 作成日時（履歴の並び順に使用）。
-    var createdAt: Date
+    var createdAt: Date = Date.now
     /// お気に入りフラグ。
-    var isFavorite: Bool
+    var isFavorite: Bool = false
     /// 生成状態の生値（`status` 経由で読み書き）。既定は完了（既存データ互換）。
     var statusRaw: String = ArticleStatus.completed.rawValue
     /// 生成失敗時の理由。
@@ -59,12 +63,25 @@ final class LearningArticle {
         set { statusRaw = newValue.rawValue }
     }
 
+    /// セグメントのストレージ（CloudKit 要件で optional）。外部からは `segments` を使うこと。
     @Relationship(deleteRule: .cascade, inverse: \ArticleSegment.article)
-    var segments: [ArticleSegment]
+    private var segmentsStore: [ArticleSegment]? = []
+
+    /// 順序付きセグメント（`segmentsStore` の non-optional ラッパ）。
+    var segments: [ArticleSegment] {
+        get { segmentsStore ?? [] }
+        set { segmentsStore = newValue }
+    }
+
+    /// ログのストレージ（CloudKit 要件で optional）。外部からは `logs` を使うこと。
+    @Relationship(deleteRule: .cascade, inverse: \ArticleLogEntry.article)
+    private var logsStore: [ArticleLogEntry]? = []
 
     /// 生成処理の進捗ログ（長押しで開くログ画面に時系列表示する）。
-    @Relationship(deleteRule: .cascade, inverse: \ArticleLogEntry.article)
-    var logs: [ArticleLogEntry] = []
+    var logs: [ArticleLogEntry] {
+        get { logsStore ?? [] }
+        set { logsStore = newValue }
+    }
 
     init(
         id: UUID = UUID(),
@@ -97,20 +114,28 @@ final class LearningArticle {
 @Model
 final class ArticleSegment {
     /// 表示順（0 始まり）。
-    var order: Int
+    var order: Int = 0
     /// レベルに合わせて書き換えた本文（オリジナル指定時は元本文の一部）。
-    var rewrittenText: String
+    var rewrittenText: String = ""
     /// Image Playground 用の短い視覚的プロンプト（具体名詞中心の一文）。無ければ本文から代替。
     var imagePrompt: String? = nil
-    /// イラスト画像データ。大きめ BLOB のため外部ストレージに逃がし、削除連動を SwiftData に任せる。
+    /// イラスト画像データ。大きめ BLOB のため外部ストレージに逃がし、削除連動を SwiftData に任せる
+    /// （CloudKit では CKAsset として同期される）。
     @Attribute(.externalStorage) var imageData: Data?
     /// イラスト生成状態の生値（`imageState` 経由で読み書きする）。
-    var imageStateRaw: String
+    var imageStateRaw: String = SegmentImageState.pending.rawValue
     /// イラスト生成に失敗したときの理由（プレースホルダに表示。成功時は nil）。
     var imageFailureReason: String? = nil
 
+    /// 用語集のストレージ（CloudKit 要件で optional）。外部からは `glossary` を使うこと。
     @Relationship(deleteRule: .cascade, inverse: \GlossaryTerm.segment)
-    var glossary: [GlossaryTerm]
+    private var glossaryStore: [GlossaryTerm]? = []
+
+    /// レベル超過語の用語集（`glossaryStore` の non-optional ラッパ）。
+    var glossary: [GlossaryTerm] {
+        get { glossaryStore ?? [] }
+        set { glossaryStore = newValue }
+    }
 
     /// 逆参照。cascade 削除の親。
     var article: LearningArticle?
@@ -143,15 +168,15 @@ final class ArticleSegment {
 @Model
 final class ArticleLogEntry {
     /// 記録時刻。
-    var timestamp: Date
+    var timestamp: Date = Date.now
     /// ローカライズ用のフォーマットキー（xcstrings のキー。引数は %@ で埋める）。既定は空（旧データ互換）。
     var messageKey: String = ""
     /// フォーマットに差し込む引数（文字列化済み）。
     var messageArgs: [String] = []
     /// エラー行か（画面で赤表示）。
-    var isError: Bool
+    var isError: Bool = false
     /// 所属記事の ID（`@Query` のフィルタ用に直接保持し、述語を単純化する）。
-    var articleID: UUID
+    var articleID: UUID = UUID()
 
     /// 逆参照。cascade 削除の親。
     var article: LearningArticle?
@@ -176,9 +201,9 @@ final class ArticleLogEntry {
 @Model
 final class GlossaryTerm {
     /// 本文中に現れる語形（強調の検索キー）。
-    var surface: String
+    var surface: String = ""
     /// 母語訳。
-    var translation: String
+    var translation: String = ""
 
     /// 逆参照。
     var segment: ArticleSegment?

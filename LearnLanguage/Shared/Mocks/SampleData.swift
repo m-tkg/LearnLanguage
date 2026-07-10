@@ -32,9 +32,10 @@ enum SampleData {
     /// メモリ内コンテナにサンプルを投入して返す（プレビュー用）。
     @MainActor
     static func previewContainer() -> ModelContainer {
+        // cloudKitDatabase 既定 .automatic の巻き込みを避け、プレビューは常にローカルのみ。
         let container = try! ModelContainer(
             for: LearningArticle.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         )
         container.mainContext.insert(makeArticle())
         container.mainContext.insert(makeArticle(title: "A Day at the Market"))
