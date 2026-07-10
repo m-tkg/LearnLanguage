@@ -3,7 +3,6 @@ options:
   bundleIdPrefix: com.mtkg
   deploymentTarget:
     iOS: "26.0"
-    macOS: "26.0"
   createIntermediateGroups: true
   developmentLanguage: ja
 attributes:
@@ -26,18 +25,14 @@ settings:
 targets:
   LearnLanguage:
     type: application
-    # iOS / macOS のネイティブマルチプラットフォーム（DLNAviewer と同方式）。
-    # macOS 版も Xcode Cloud → TestFlight で配布する（Mac 用 TestFlight アプリ経由）。
-    supportedDestinations: [iOS, macOS]
+    platform: iOS
     scheme:
       testTargets:
         - LearnLanguageTests
     sources:
       - path: LearnLanguage
     dependencies:
-      # ShareExtension は iOS 専用（macOS のシェア機能は未対応）。
       - target: ShareExtension
-        destinationFilters: [iOS]
     # Info.plist は xcodegen が properties から生成する（DLNAviewer と同方式）。
     # INFOPLIST_KEY_* ビルド設定方式だと UIBackgroundModes が反映されないため明示ファイルにした。
     info:
@@ -50,8 +45,6 @@ targets:
         # 輸出コンプライアンス: 独自・非標準の暗号化は使わず、OS 標準の HTTPS/TLS のみ
         # （免除対象）。これを宣言すると TestFlight 配布ごとの質問（Missing Compliance）がスキップされる。
         ITSAppUsesNonExemptEncryption: false
-        # Mac App Store（TestFlight for Mac 含む）はカテゴリ必須。
-        LSApplicationCategoryType: public.app-category.education
         # CloudKit のサイレントプッシュ（他端末の記事変更を即時反映）を受けるために必要。
         # SwiftData+CloudKit が購読を自動管理するので、アプリ側の受信コードは不要。
         UIBackgroundModes:
@@ -70,11 +63,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mtkg.LearnLanguage
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        # エンタイトルメントはプラットフォーム別（DLNAviewer と同方式）。
-        # macOS は App Sandbox 必須（Mac App Store / TestFlight 配布のため）＋
-        # aps-environment のキー名が iOS と異なる（com.apple.developer. プレフィックス付き）。
         CODE_SIGN_ENTITLEMENTS: LearnLanguage/LearnLanguage.entitlements
-        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": LearnLanguage/LearnLanguage-macOS.entitlements
         GENERATE_INFOPLIST_FILE: NO
   ShareExtension:
     type: app-extension
@@ -94,7 +83,7 @@ targets:
         INFOPLIST_FILE: ShareExtension/Info.plist
   LearnLanguageTests:
     type: bundle.unit-test
-    supportedDestinations: [iOS, macOS]
+    platform: iOS
     sources:
       - path: LearnLanguageTests
     dependencies:
@@ -103,6 +92,3 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mtkg.LearnLanguageTests
         GENERATE_INFOPLIST_FILE: YES
-        # xcodegen は iOS 形式（LearnLanguage.app/LearnLanguage）の TEST_HOST を生成するため、
-        # macOS はバンドル構造（Contents/MacOS/）に合わせて上書きする（DLNAviewer と同対処）。
-        "TEST_HOST[sdk=macosx*]": "$(BUILT_PRODUCTS_DIR)/LearnLanguage.app/Contents/MacOS/LearnLanguage"

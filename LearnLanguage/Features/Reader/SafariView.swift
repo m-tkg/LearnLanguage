@@ -1,5 +1,3 @@
-// SFSafariViewController は iOS 専用（macOS は既定ブラウザで開く）。
-#if os(iOS)
 import SwiftUI
 import SafariServices
 
@@ -15,4 +13,3 @@ struct SafariView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
-#endif
