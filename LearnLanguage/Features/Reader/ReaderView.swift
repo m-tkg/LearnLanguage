@@ -13,6 +13,8 @@ struct ReaderView: View {
     @AppStorage("nativeLanguageCode") private var nativeLanguageCode = "ja"
     @State private var speaker = SpeechService()
     @State private var currentIndex = 0
+    /// 元記事のアプリ内ブラウザ表示。
+    @State private var showingSource = false
 
     private var segments: [ArticleSegment] {
         article.segments.sorted { $0.order < $1.order }
@@ -52,10 +54,18 @@ struct ReaderView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Link(destination: article.sourceURL) {
+                Button {
+                    showingSource = true
+                } label: {
                     Label("元記事を開く", systemImage: "safari")
                 }
+                // SFSafariViewController は http/https のみ対応。
+                .disabled(!["http", "https"].contains(article.sourceURL.scheme?.lowercased() ?? ""))
             }
+        }
+        .fullScreenCover(isPresented: $showingSource) {
+            SafariView(url: article.sourceURL)
+                .ignoresSafeArea()
         }
         .onDisappear { speaker.stop() }
     }
