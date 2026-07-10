@@ -1,6 +1,8 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
+    "超上級 (Expert)" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Expert" } } } },
+    "超上級" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Expert" } } } },
     "—" : {
 
     },

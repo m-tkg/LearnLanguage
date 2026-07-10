@@ -1,12 +1,13 @@
 import Foundation
 
-/// 読み書きレベル。初級・中級・上級の3段階と「オリジナル」。
+/// 読み書きレベル。初級・中級・上級・超上級の4段階と「オリジナル」。
 /// レベルを言語非依存の数値パラメータ（許容語彙の頻度ランク上限・最大文長・文法許容度）で表し、
 /// これを instructions に定量注入することで多言語でも同じロジックで駆動できる。
 enum ReadingLevel: String, Sendable, Equatable, Hashable, CaseIterable, Identifiable {
     case beginner
     case intermediate
     case advanced
+    case expert
     /// 書き換えなし（元本文を分割のみ）。
     case original
 
@@ -17,6 +18,7 @@ enum ReadingLevel: String, Sendable, Equatable, Hashable, CaseIterable, Identifi
         case .beginner: return "初級 (Beginner)"
         case .intermediate: return "中級 (Intermediate)"
         case .advanced: return "上級 (Advanced)"
+        case .expert: return "超上級 (Expert)"
         case .original: return "オリジナル"
         }
     }
@@ -27,21 +29,23 @@ enum ReadingLevel: String, Sendable, Equatable, Hashable, CaseIterable, Identifi
         case .beginner: return "初級"
         case .intermediate: return "中級"
         case .advanced: return "上級"
+        case .expert: return "超上級"
         case .original: return "オリジナル"
         }
     }
 
-    /// 永続化用の整数値。beginner=1, intermediate=2, advanced=3, original=0。
+    /// 永続化用の整数値。beginner=1, intermediate=2, advanced=3, expert=4, original=0。
     var storageValue: Int {
         switch self {
         case .beginner: return 1
         case .intermediate: return 2
         case .advanced: return 3
+        case .expert: return 4
         case .original: return 0
         }
     }
 
-    /// 永続化値からの復元。旧スキーマの 1〜10 は大きい値ほど上級に丸める。
+    /// 永続化値からの復元。旧スキーマ（1〜10）の 4 以上は最上位の超上級に丸める。
     init(storageValue: Int, isOriginal: Bool) {
         if isOriginal || storageValue <= 0 {
             self = .original
@@ -49,8 +53,10 @@ enum ReadingLevel: String, Sendable, Equatable, Hashable, CaseIterable, Identifi
             self = .beginner
         } else if storageValue == 2 {
             self = .intermediate
-        } else {
+        } else if storageValue == 3 {
             self = .advanced
+        } else {
+            self = .expert
         }
     }
 
@@ -63,6 +69,9 @@ enum ReadingLevel: String, Sendable, Equatable, Hashable, CaseIterable, Identifi
             return LevelParameters(vocabularyRankCap: 2000, maxSentenceLength: 16, allowsSubordinateClauses: true)
         case .advanced:
             return LevelParameters(vocabularyRankCap: 5000, maxSentenceLength: 26, allowsSubordinateClauses: true)
+        case .expert:
+            // ネイティブ向け記事に近い難度（語彙はほぼ無制限に近く、長く複雑な文も許容）。
+            return LevelParameters(vocabularyRankCap: 20000, maxSentenceLength: 40, allowsSubordinateClauses: true)
         case .original:
             return LevelParameters(vocabularyRankCap: .max, maxSentenceLength: .max, allowsSubordinateClauses: true)
         }
