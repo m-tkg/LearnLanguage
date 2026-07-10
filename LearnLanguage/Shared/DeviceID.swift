@@ -1,7 +1,5 @@
 import Foundation
-#if canImport(UIKit)
 import UIKit
-#endif
 
 /// この端末（インストール）を識別する ID。初回アクセス時に生成して UserDefaults に保存する。
 /// 記事の生成オーナーシップ（どの端末がキュー処理を担当するか）の判定に使う。
@@ -24,13 +22,7 @@ enum DeviceID {
     /// - Note: UIDevice.current が MainActor 隔離のため @MainActor（利用側はログ記録＝MainActor のみ）。
     @MainActor
     static let displayLabel: String = {
-        let suffix = String(current.prefix(4))
-        #if canImport(UIKit)
         // UIDevice.name は iOS 16+ でユーザー設定名を返さない（"iPhone" 等の総称）ため model で十分。
-        let device = UIDevice.current.model
-        #else
-        let device = Host.current().localizedName ?? "Mac"
-        #endif
-        return "\(device) \(suffix)"
+        "\(UIDevice.current.model) \(String(current.prefix(4)))"
     }()
 }

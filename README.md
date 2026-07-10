@@ -17,6 +17,9 @@
 
 - iOS 26+ / Apple Intelligence 対応端末（オンデバイス書き換え・翻訳を使う場合）
 - Xcode 27+ / [xcodegen](https://github.com/yonaskolb/XcodeGen)
+- Mac で使う場合は Apple Silicon Mac 上で **iPad 版をそのまま実行**する（Designed for iPad。
+  Mac ネイティブ版は作らない方針。TestFlight for Mac の「iPhone および iPad App」から
+  インストールできる）
 
 ## セットアップ
 

@@ -19,6 +19,8 @@ xcodebuild -project LearnLanguage.xcodeproj -scheme LearnLanguage \
 
 FoundationModels・画像生成・WKWebView 描画は Simulator で完全には検証できない。
 関連機能を変更したら実機での確認を優先する。
+SourceKit（エディタ診断）が大量の `Cannot find ... in scope` を出すことがあるがノイズ。
+判断は xcodebuild の結果で行う。
 
 ## このプロジェクト固有の注意点
 
