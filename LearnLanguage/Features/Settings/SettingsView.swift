@@ -3,6 +3,7 @@ import SwiftUI
 /// 母語・既定レベル・既定読み上げ速度の設定画面。設定は AppStorage に保存する。
 struct SettingsView: View {
     @AppStorage("nativeLanguageCode") private var nativeLanguageCode = "ja"
+    @AppStorage("targetLanguageCode") private var targetLanguageCode = "en"
     @AppStorage("speechRate") private var speechRate = 0.5
     @AppStorage("defaultReadingLevel") private var defaultLevel = ReadingLevel.beginner
     @AppStorage(IllustratorFactory.providerDefaultsKey) private var imageProvider = ImageProvider.pollinations.rawValue
@@ -28,21 +29,17 @@ struct SettingsView: View {
     /// 保存完了トーストの表示。
     @State private var showingSavedToast = false
 
-    /// 母語の選択肢（多言語展開に備え、コード駆動で保持）。
-    private let nativeLanguages: [(code: String, name: String)] = [
-        ("ja", "日本語"),
-        ("en", "English"),
-        ("zh", "中文"),
-        ("ko", "한국어"),
-        ("es", "Español"),
-    ]
-
     var body: some View {
         NavigationStack {
             Form {
-                Section("学習") {
+                Section {
+                    Picker("学習対象言語", selection: $targetLanguageCode) {
+                        ForEach(LanguageOptions.all, id: \.code) { language in
+                            Text(language.name).tag(language.code)
+                        }
+                    }
                     Picker("母語", selection: $nativeLanguageCode) {
-                        ForEach(nativeLanguages, id: \.code) { language in
+                        ForEach(LanguageOptions.all, id: \.code) { language in
                             Text(language.name).tag(language.code)
                         }
                     }
@@ -51,6 +48,10 @@ struct SettingsView: View {
                             Text(LocalizedStringKey(level.displayName)).tag(level)
                         }
                     }
+                } header: {
+                    Text("学習")
+                } footer: {
+                    Text("学習対象言語は新しく作る教材の既定値です（追加時に記事ごとに変更可能）。元記事が別の言語でも、この言語に翻訳して教材化します。")
                 }
 
                 Section {

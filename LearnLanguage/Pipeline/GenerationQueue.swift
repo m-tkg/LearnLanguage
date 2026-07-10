@@ -38,11 +38,12 @@ final class GenerationQueue {
     }
 
     /// 生成をキューに追加。プレースホルダ記事を即保存して一覧に出し、順次処理を回す。
-    func enqueue(url: URL, level: ReadingLevel, nativeLanguageCode: String) {
+    /// - Parameter targetLanguageCode: 学習対象言語（教材の出力言語。元記事が別言語なら翻訳される）。
+    func enqueue(url: URL, level: ReadingLevel, targetLanguageCode: String = "en", nativeLanguageCode: String) {
         let article = LearningArticle(
             sourceURL: url,
             title: url.host() ?? "記事",
-            languageCode: "en",
+            languageCode: targetLanguageCode,
             translationLanguageCode: nativeLanguageCode,
             targetLevel: level.storageValue,
             isOriginal: level == .original,

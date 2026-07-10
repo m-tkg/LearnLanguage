@@ -78,7 +78,8 @@ struct BatchProcessor {
             var items: [RewriteBatchItem] = []
             for index in 0..<batch.count {
                 if let ex = extracted[index] {
-                    items.append(RewriteBatchItem(text: ex.text, level: levels[index], languageCode: ex.languageCode ?? "en"))
+                    // languageCode は学習対象（出力）言語。元記事が別言語なら書き換え時に翻訳される。
+                    items.append(RewriteBatchItem(text: ex.text, level: levels[index], languageCode: batch[index].languageCode))
                     itemIndices.append(index)
                 }
             }
@@ -113,7 +114,7 @@ struct BatchProcessor {
                 log(batch[index], "本文をレベル別に書き換えています…（オンデバイス）")
                 segmentsPerArticle[index] = try? await rewriter.rewrite(
                     text: ex.text, level: levels[index],
-                    languageCode: ex.languageCode ?? "en", nativeLanguageCode: native
+                    languageCode: batch[index].languageCode, nativeLanguageCode: native
                 )
                 if let segments = segmentsPerArticle[index], !segments.isEmpty {
                     log(batch[index], "書き換えが完了しました（%@ 分割）。", [String(segments.count)])
@@ -139,7 +140,8 @@ struct BatchProcessor {
                 continue
             }
             article.title = ex.title
-            article.languageCode = ex.languageCode ?? "en"
+            // languageCode は enqueue 時に選択された学習対象言語のまま維持する
+            // （抽出された元記事の言語で上書きしない。教材・読み上げは対象言語）。
             article.originalText = ex.text
             setSegments(article, from: segments)
             log(article, "本文が準備できました（タイトル: %@）。ここから学習画面に入れます。", [ex.title])

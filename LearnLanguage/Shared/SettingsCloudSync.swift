@@ -26,6 +26,7 @@ final class SettingsCloudSync {
     /// 同期対象のキー一覧。**設定項目を追加したらここにも足すこと**（忘れるとその項目だけ同期されない）。
     static let syncedKeys = [
         "nativeLanguageCode",
+        "targetLanguageCode",
         "speechRate",
         "defaultReadingLevel",
         RewriterFactory.providerDefaultsKey,

@@ -42,7 +42,12 @@ struct FoundationModelsRewriter: TextRewriting {
         nativeLanguageCode: String
     ) async throws -> [RewrittenSegment] {
         // 段階1: 文分割 → 3〜4 塊に正規化（LLM を使わない）。
-        let sentences = Self.splitSentences(text, languageCode: languageCode)
+        // `languageCode` は学習対象（出力）言語であり元本文の言語とは限らないため、
+        // 分割には本文から検出した言語を使う（検出できなければ対象言語で代用）。
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(text)
+        let sourceLanguage = recognizer.dominantLanguage?.rawValue ?? languageCode
+        let sentences = Self.splitSentences(text, languageCode: sourceLanguage)
         let groups = Self.groupIntoSegments(sentences)
 
         // オリジナルは書き換えず、分割結果をそのまま各セグメントに割り当てる。

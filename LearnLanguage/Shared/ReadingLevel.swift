@@ -77,7 +77,8 @@ enum ReadingLevel: String, Sendable, Equatable, Hashable, CaseIterable, Identifi
             ? "Subordinate clauses are allowed when needed."
             : "Use only simple sentences; avoid subordinate clauses."
         return """
-        Rewrite the passage in \(languageCode) for a language learner.
+        Rewrite the passage in \(languageCode) for a language learner. If the passage is written in a \
+        different language, translate it into \(languageCode) while rewriting.
         Preserve the original meaning. Use only vocabulary within the top \(p.vocabularyRankCap) \
         most frequent words of the language. Keep sentences to about \(p.maxSentenceLength) words or fewer. \
         \(clauses)

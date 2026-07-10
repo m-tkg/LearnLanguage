@@ -11,9 +11,9 @@ protocol ContentExtracting: Sendable {
 protocol TextRewriting: Sendable {
     /// 抽出済み本文を 3〜4 セグメントに分割し、各セグメントを書き換える。
     /// - Parameters:
-    ///   - text: 抽出済みプレーンテキスト。
-    ///   - level: 目標レベル。`.original` の場合は分割のみで書き換えない。
-    ///   - languageCode: 学習対象言語（BCP-47）。文分割・書き換え言語に使う。
+    ///   - text: 抽出済みプレーンテキスト（言語は問わない。対象言語と異なる場合は翻訳される）。
+    ///   - level: 目標レベル。`.original` の場合は簡略化しない（翻訳は行う）。
+    ///   - languageCode: 学習対象言語（BCP-47）＝出力言語。
     ///   - nativeLanguageCode: 学習者母語（用語集の訳語ターゲット, BCP-47）。
     func rewrite(
         text: String,

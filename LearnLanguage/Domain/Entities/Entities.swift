@@ -71,7 +71,8 @@ enum IllustrationResult: Sendable, Equatable {
     case failure(reason: String)
 }
 
-/// バッチ書き換えの 1 件分（抽出済み本文＋目標レベル＋記事言語）。
+/// バッチ書き換えの 1 件分（抽出済み本文＋目標レベル＋学習対象言語）。
+/// `languageCode` は**出力（学習対象）言語**。元記事が別言語なら書き換え時に翻訳される。
 struct RewriteBatchItem: Sendable, Equatable {
     var text: String
     var level: ReadingLevel

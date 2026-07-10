@@ -83,7 +83,7 @@ struct GeminiRewriter: TextRewriting, BatchRewriting {
     /// レベル制約を英語一文にする。
     static func levelSpec(_ level: ReadingLevel) -> String {
         guard level != .original else {
-            return "original — keep the wording verbatim; do NOT simplify; advancedTerms must be empty"
+            return "original — keep the wording and meaning as faithful to the source as possible; do NOT simplify; advancedTerms must be empty"
         }
         let p = level.parameters
         let clauses = p.allowsSubordinateClauses ? "subordinate clauses allowed" : "simple sentences only, avoid subordinate clauses"
@@ -93,8 +93,10 @@ struct GeminiRewriter: TextRewriting, BatchRewriting {
     static func instruction(nativeLanguageCode: String) -> String {
         """
         You rewrite articles for language learners. You will receive SEVERAL articles, each with an INDEX, \
-        a target level, and its language. For EACH article:
-        - Rewrite in the article's own language (do not translate), preserving meaning, facts, names, numbers.
+        a target level, and a TARGET LANGUAGE. For EACH article:
+        - Produce the output ENTIRELY in the item's target language. If the source article is written in a \
+        different language, translate it into the target language while rewriting. Preserve meaning, facts, \
+        names, and numbers.
         - Apply the item's level constraints.
         - Divide into 3 or 4 coherent segments in reading order.
         - For each segment provide `imagePrompt`: a detailed description of an illustration that clearly \
@@ -115,7 +117,7 @@ struct GeminiRewriter: TextRewriting, BatchRewriting {
     static func userText(items: [RewriteBatchItem]) -> String {
         var lines: [String] = []
         for (i, item) in items.enumerated() {
-            lines.append("[\(i + 1)] Level: \(levelSpec(item.level)) — Language: \(item.languageCode)")
+            lines.append("[\(i + 1)] Level: \(levelSpec(item.level)) — Target language: \(item.languageCode)")
             lines.append("Article: \(item.text)")
             lines.append("")
         }

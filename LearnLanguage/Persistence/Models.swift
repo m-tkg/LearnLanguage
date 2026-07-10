@@ -32,7 +32,8 @@ final class LearningArticle {
     var sourceURL: URL = URL(string: "about:blank")!
     /// 記事タイトル（抽出結果 or フォールバック）。
     var title: String = ""
-    /// 学習対象言語（BCP-47。例: "en", "fr"）。多言語対応の要。
+    /// 学習対象言語（BCP-47。例: "en", "fr"）。教材（セグメント本文）と読み上げの言語。
+    /// 作成時に選択され、元記事が別言語の場合は書き換え時にこの言語へ翻訳される。
     var languageCode: String = "en"
     /// 作成時点の学習者の母語 = 用語集の訳語言語（BCP-47。初期値 "ja"）。
     /// 画面上の「本文を翻訳」機能の翻訳先は、この値ではなく設定の現在の母語

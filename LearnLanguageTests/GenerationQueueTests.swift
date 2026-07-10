@@ -164,6 +164,8 @@ final class GenerationQueueTests: XCTestCase {
         XCTAssertEqual(extractor.callCount, 1)
         XCTAssertEqual(batchRewriter.callCount, 1)
         XCTAssertEqual(illustrator.callCount, 2, "セグメント数ぶんイラスト生成が呼ばれる")
+        XCTAssertEqual(batchRewriter.lastItems.first?.languageCode, article.languageCode,
+                       "書き換えには記事の学習対象言語（抽出された元言語ではなく）を渡す")
     }
 
     func testExtractionFailureMarksFailedWithoutCallingRewriterOrIllustrator() async throws {

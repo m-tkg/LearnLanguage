@@ -6,6 +6,7 @@ struct RootTabView: View {
     @Environment(GenerationQueue.self) private var queue
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("nativeLanguageCode") private var nativeLanguageCode = "ja"
+    @AppStorage("targetLanguageCode") private var targetLanguageCode = "en"
 
     var body: some View {
         TabView {
@@ -30,12 +31,15 @@ struct RootTabView: View {
     }
 
     /// シェアシート経由で受信箱に貯まった共有を、選択された難易度でキューに追加する。
+    /// 学習対象言語は設定の既定値を使う（シェアシートでは言語まで選ばせない）。
     private func importSharedURLs() {
         for share in SharedInbox.drain() {
             guard let url = URL(string: share.url) else { continue }
             let level = ReadingLevel(storageValue: share.levelStorageValue,
                                      isOriginal: share.levelStorageValue <= 0)
-            queue.enqueue(url: url, level: level, nativeLanguageCode: nativeLanguageCode)
+            queue.enqueue(url: url, level: level,
+                          targetLanguageCode: targetLanguageCode,
+                          nativeLanguageCode: nativeLanguageCode)
         }
     }
 }
