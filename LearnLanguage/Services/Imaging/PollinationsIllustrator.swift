@@ -12,11 +12,33 @@ struct PollinationsIllustrator: IllustrationGenerating {
     var height = 768
     /// 任意の Pollinations API キー（Seed tier でレート緩和）。既定は Keychain から読む。
     var apiKey: @Sendable () -> String? = { KeychainStore.get(account: KeychainStore.pollinationsAPIKeyAccount) }
+    /// テストでネットワークをモックするための差し替え口。
+    var session: URLSession = .shared
+    /// リトライのバックオフ基準秒（attempt に対し 2^(attempt+1) 倍）。テストでは 0 にして待ちを消す。
+    var retryBaseDelay: TimeInterval = 1
+
+    /// 429（レート制限）と 5xx（Pollinations は Cloudflare 経由のため 530 等の一時障害が出やすい）はリトライする。
+    private static let maxAttempts = 4
 
     func illustrate(prompt: String) async -> IllustrationResult {
         guard let url = Self.makeURL(prompt: prompt, width: width, height: height) else {
             return .failure(reason: "画像URLの生成に失敗しました。")
         }
+        var result = IllustrationResult.failure(reason: "通信に失敗しました。")
+        for attempt in 0..<Self.maxAttempts {
+            let (outcome, retryable) = await requestOnce(url: url)
+            result = outcome
+            if case .success = outcome { return outcome }
+            guard retryable, attempt < Self.maxAttempts - 1 else { break }
+            let wait = retryBaseDelay * Double(1 << (attempt + 1))
+            Self.logger.info("Pollinations retrying in \(wait, privacy: .public)s (attempt \(attempt + 1, privacy: .public))")
+            try? await Task.sleep(for: .seconds(wait))
+        }
+        return result
+    }
+
+    /// 1 回だけリクエストする。戻り値の retryable は「待てば回復しうる失敗（429/5xx/通信エラー）」か。
+    private func requestOnce(url: URL) async -> (IllustrationResult, retryable: Bool) {
         do {
             var request = URLRequest(url: url)
             request.timeoutInterval = 60
@@ -24,21 +46,23 @@ struct PollinationsIllustrator: IllustrationGenerating {
             if let key = apiKey(), !key.isEmpty {
                 request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
             }
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse else {
-                return .failure(reason: "通信に失敗しました。")
+                return (.failure(reason: "通信に失敗しました。"), true)
             }
             guard http.statusCode == 200 else {
-                return .failure(reason: "画像生成に失敗しました（HTTP \(http.statusCode)）。時間をおいて再試行してください。")
+                let retryable = http.statusCode == 429 || (500...599).contains(http.statusCode)
+                return (.failure(reason: "画像生成に失敗しました（HTTP \(http.statusCode)）。時間をおいて再試行してください。"),
+                        retryable)
             }
             let contentType = http.value(forHTTPHeaderField: "Content-Type") ?? ""
             guard contentType.hasPrefix("image"), !data.isEmpty else {
-                return .failure(reason: "画像を取得できませんでした。時間をおいて再試行してください。")
+                return (.failure(reason: "画像を取得できませんでした。時間をおいて再試行してください。"), false)
             }
-            return .success(data)
+            return (.success(data), false)
         } catch {
             Self.logger.error("Pollinations request failed: \(String(describing: error), privacy: .public)")
-            return .failure(reason: "通信エラー: \(error.localizedDescription)")
+            return (.failure(reason: "通信エラー: \(error.localizedDescription)"), true)
         }
     }
 

@@ -108,6 +108,8 @@ final class GeminiClientTests: XCTestCase {
 /// (statusCode, body) を返す。`requestCount` で呼び出し回数を検証できる。
 final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var stub: ((URLRequest) -> (Int, Data))?
+    /// スタブ応答に付けるレスポンスヘッダ（Content-Type の検証があるテスト用。既定なし）。
+    nonisolated(unsafe) static var responseHeaders: [String: String]?
     nonisolated(unsafe) static var requestCount = 0
 
     static var session: URLSession {
@@ -122,7 +124,7 @@ final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     override func startLoading() {
         Self.requestCount += 1
         let (status, data) = Self.stub?(request) ?? (200, Data())
-        let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: "HTTP/1.1", headerFields: nil)!
+        let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: "HTTP/1.1", headerFields: Self.responseHeaders)!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: data)
         client?.urlProtocolDidFinishLoading(self)

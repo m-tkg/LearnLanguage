@@ -1,21 +1,6 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
-    "Gemini APIキーが未設定です。設定画面で入力してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The Gemini API key is not set. Enter it in Settings." } } } },
-    "Gemini から有効な応答がありませんでした。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Gemini did not return a valid response." } } } },
-    "APIキーが認証されませんでした。Google AI Studio で発行した Gemini API キーを設定に貼り直し、キーの利用制限（API/アプリ制限）や、対象プロジェクトで Generative Language API が有効かを確認してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The API key could not be authenticated. Re-paste a Gemini API key issued from Google AI Studio into Settings, and check the key's restrictions (API/app restrictions) and whether the Generative Language API is enabled for the project." } } } },
-    "無料枠の1日上限に達しました（翌日リセット）。設定でモデルを変えるか、時間をおくか、billing を有効化してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "You've reached today's free-tier limit (resets tomorrow). Switch models in Settings, wait a while, or enable billing." } } } },
-    "画像が返りませんでした。プロンプトを変えて再試行してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No image was returned. Try a different prompt." } } } },
-    "画像URLの生成に失敗しました。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Failed to build the image URL." } } } },
-    "通信に失敗しました。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The connection failed." } } } },
-    "画像を取得できませんでした。時間をおいて再試行してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn't fetch the image. Try again later." } } } },
-    "本文を取得できませんでした。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn't fetch the article content." } } } },
-    "このサイトはボット対策（Cloudflare 等）により本文を取得できませんでした。別の記事URLでお試しください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "This site's bot protection (e.g. Cloudflare) blocked content extraction. Try a different article URL." } } } },
-    "オンデバイスの言語モデルが利用できません（Apple Intelligence を有効にしてください）。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The on-device language model isn't available. Enable Apple Intelligence." } } } },
-    "翻訳結果が空でした。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The translation result was empty." } } } },
-    "書き換えに失敗しました。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Rewriting failed." } } } },
-    "不明なエラー" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Unknown error" } } } },
-    "失敗: " : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Failed: " } } } },
     "—" : {
 
     },
@@ -50,6 +35,17 @@
         }
       }
     },
+    "APIキーが認証されませんでした。Google AI Studio で発行した Gemini API キーを設定に貼り直し、キーの利用制限（API/アプリ制限）や、対象プロジェクトで Generative Language API が有効かを確認してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The API key could not be authenticated. Re-paste a Gemini API key issued from Google AI Studio into Settings, and check the key's restrictions (API/app restrictions) and whether the Generative Language API is enabled for the project."
+          }
+        }
+      }
+    },
     "Flash-Lite（軽量・無料枠が広め）" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -78,6 +74,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gemini API Key"
+          }
+        }
+      }
+    },
+    "Gemini APIキーが未設定です。設定画面で入力してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Gemini API key is not set. Enter it in Settings."
+          }
+        }
+      }
+    },
+    "Gemini から有効な応答がありませんでした。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemini did not return a valid response."
           }
         }
       }
@@ -215,6 +233,17 @@
         }
       }
     },
+    "オンデバイスの言語モデルが利用できません（Apple Intelligence を有効にしてください）。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The on-device language model isn't available. Enable Apple Intelligence."
+          }
+        }
+      }
+    },
     "お気に入り" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -244,6 +273,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Added to the queue (level: %@)."
+          }
+        }
+      }
+    },
+    "このサイトはボット対策（Cloudflare 等）により本文を取得できませんでした。別の記事URLでお試しください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This site's bot protection (e.g. Cloudflare) blocked content extraction. Try a different article URL."
           }
         }
       }
@@ -310,6 +350,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Advanced"
+          }
+        }
+      }
+    },
+    "不明なエラー" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown error"
           }
         }
       }
@@ -506,8 +557,15 @@
         }
       }
     },
-    "失敗: %@" : {
-
+    "失敗: " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed: "
+          }
+        }
+      }
     },
     "学習" : {
       "extractionState" : "stale",
@@ -742,7 +800,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Couldn't fetch content."
+            "value" : "Couldn't fetch the article content."
           }
         }
       }
@@ -780,6 +838,39 @@
         }
       }
     },
+    "無料枠の1日上限に達しました（翌日リセット）。設定でモデルを変えるか、時間をおくか、billing を有効化してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've reached today's free-tier limit (resets tomorrow). Switch models in Settings, wait a while, or enable billing."
+          }
+        }
+      }
+    },
+    "画像URLの生成に失敗しました。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to build the image URL."
+          }
+        }
+      }
+    },
+    "画像が返りませんでした。プロンプトを変えて再試行してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No image was returned. Try a different prompt."
+          }
+        }
+      }
+    },
     "画像プロバイダ" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -787,6 +878,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Image Provider"
+          }
+        }
+      }
+    },
+    "画像を取得できませんでした。時間をおいて再試行してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't fetch the image. Try again later."
           }
         }
       }
@@ -808,6 +910,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Translating…"
+          }
+        }
+      }
+    },
+    "翻訳結果が空でした。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The translation result was empty."
           }
         }
       }
@@ -906,6 +1019,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Read Aloud"
+          }
+        }
+      }
+    },
+    "通信に失敗しました。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The connection failed."
           }
         }
       }
