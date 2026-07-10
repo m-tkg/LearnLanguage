@@ -2,6 +2,9 @@ import Foundation
 import Security
 
 /// Keychain に文字列（API キー等の秘密情報）を保存/取得する薄いラッパ。
+/// 項目は同期可能（`kSecAttrSynchronizable`）として保存し、ユーザーが iCloud キーチェーンを
+/// 有効にしていれば端末間で自動的に同期される（無効なら従来どおり端末ローカル）。
+/// 読み取りは `kSecAttrSynchronizableAny` で、同期化以前に保存された旧項目も引き続き見つかる。
 enum KeychainStore {
     private static let service = "com.mtkg.LearnLanguage"
 
@@ -16,18 +19,26 @@ enum KeychainStore {
 
     /// 値を保存する。nil/空文字なら削除。
     static func set(_ value: String?, account: String) {
-        let base: [String: Any] = [
+        // 旧（非同期）・新（同期）どちらの既存項目も消してから入れ直す。
+        let delete: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
         ]
-        SecItemDelete(base as CFDictionary)
+        SecItemDelete(delete as CFDictionary)
 
         let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let trimmed, !trimmed.isEmpty, let data = trimmed.data(using: .utf8) else { return }
-        var add = base
-        add[kSecValueData as String] = data
-        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        let add: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            // iCloud キーチェーンでの端末間同期を許可する。
+            kSecAttrSynchronizable as String: true,
+        ]
         SecItemAdd(add as CFDictionary, nil)
     }
 
@@ -39,6 +50,7 @@ enum KeychainStore {
             kSecAttrAccount as String: account,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
         ]
         var item: CFTypeRef?
         guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,

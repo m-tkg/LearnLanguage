@@ -7,6 +7,8 @@ struct LearnLanguageApp: App {
     let modelContainer: ModelContainer
     /// 教材生成の直列キュー（一覧に即表示・順次処理）。
     @State private var queue: GenerationQueue
+    /// 一般設定の iCloud 同期（UserDefaults ⇄ KVS のミラーリング）。
+    @State private var settingsSync: SettingsCloudSync
 
     init() {
         let container = Self.makeModelContainer()
@@ -14,6 +16,11 @@ struct LearnLanguageApp: App {
         // App.init は起動時にメインスレッドで呼ばれるため assumeIsolated で安全に生成する。
         _queue = State(initialValue: MainActor.assumeIsolated {
             GenerationQueue(modelContext: container.mainContext)
+        })
+        _settingsSync = State(initialValue: MainActor.assumeIsolated {
+            let sync = SettingsCloudSync()
+            sync.start()
+            return sync
         })
     }
 
