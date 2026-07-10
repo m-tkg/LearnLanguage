@@ -25,18 +25,38 @@ targets:
       - path: LearnLanguage
     dependencies:
       - target: ShareExtension
+    # Info.plist は xcodegen が properties から生成する（DLNAviewer と同方式）。
+    # INFOPLIST_KEY_* ビルド設定方式だと UIBackgroundModes が反映されないため明示ファイルにした。
+    info:
+      path: LearnLanguage/Info.plist
+      properties:
+        CFBundleDisplayName: LearnLanguage
+        # バージョンはビルド設定を参照する。明示しないと xcodegen が既定値 "1.0"/"1" を直値で埋める。
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        # 輸出コンプライアンス: 独自・非標準の暗号化は使わず、OS 標準の HTTPS/TLS のみ
+        # （免除対象）。これを宣言すると TestFlight 配布ごとの質問（Missing Compliance）がスキップされる。
+        ITSAppUsesNonExemptEncryption: false
+        # CloudKit のサイレントプッシュ（他端末の記事変更を即時反映）を受けるために必要。
+        # SwiftData+CloudKit が購読を自動管理するので、アプリ側の受信コードは不要。
+        UIBackgroundModes:
+          - remote-notification
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mtkg.LearnLanguage
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: LearnLanguage/LearnLanguage.entitlements
-        # 輸出コンプライアンス: 独自・非標準の暗号化は使わず、OS 標準の HTTPS/TLS のみ
-        # （免除対象）。これを宣言すると TestFlight 配布ごとの質問（Missing Compliance）がスキップされる。
-        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        GENERATE_INFOPLIST_FILE: NO
   ShareExtension:
     type: app-extension
     platform: iOS
