@@ -163,6 +163,9 @@ struct SettingsView: View {
                 keySaved = !geminiAPIKey.isEmpty
                 pollinationsAPIKey = KeychainStore.get(account: KeychainStore.pollinationsAPIKeyAccount) ?? ""
                 pollinationsKeySaved = !pollinationsAPIKey.isEmpty
+                cloudflareAccountID = KeychainStore.get(account: KeychainStore.cloudflareAccountIDAccount) ?? ""
+                cloudflareAPIToken = KeychainStore.get(account: KeychainStore.cloudflareAPITokenAccount) ?? ""
+                cloudflareSaved = !cloudflareAccountID.isEmpty && !cloudflareAPIToken.isEmpty
             }
         }
     }

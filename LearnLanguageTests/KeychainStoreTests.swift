@@ -41,6 +41,39 @@ final class KeychainStoreTests: XCTestCase {
         XCTAssertNil(KeychainStore.get(account: "never-saved-account"))
     }
 
+    // MARK: - set の更新セマンティクス（削除→追加の「消失ウィンドウ」が無いこと）
+
+    func testSetTwiceUpdatesValueInPlace() {
+        KeychainStore.set("first", account: testAccount)
+        KeychainStore.set("second", account: testAccount)
+        XCTAssertEqual(KeychainStore.get(account: testAccount), "second")
+        XCTAssertEqual(copyValue(account: testAccount, synchronizable: true), "second",
+                       "2回目の保存も同期可能な項目として更新される")
+    }
+
+    func testSetOverLegacyLocalItemLeavesOnlySynchronizable() {
+        // 旧形式（ローカル）の項目が残っている状態で保存し直す。
+        addRawLocalItem(value: "legacy", account: testAccount)
+
+        KeychainStore.set("new-value", account: testAccount)
+
+        XCTAssertEqual(copyValue(account: testAccount, synchronizable: true), "new-value")
+        XCTAssertNil(copyValue(account: testAccount, synchronizable: false),
+                     "旧ローカル項目は掃除され、二重存在しない")
+        XCTAssertEqual(KeychainStore.get(account: testAccount), "new-value")
+    }
+
+    func testSetEmptyDeletesBothVariants() {
+        addRawLocalItem(value: "legacy", account: testAccount)
+        KeychainStore.set("value", account: testAccount)
+
+        KeychainStore.set("", account: testAccount)
+
+        XCTAssertNil(KeychainStore.get(account: testAccount))
+        XCTAssertNil(copyValue(account: testAccount, synchronizable: true))
+        XCTAssertNil(copyValue(account: testAccount, synchronizable: false))
+    }
+
     // MARK: - Keychain 直接操作ヘルパ
 
     private var service: String { "com.mtkg.LearnLanguage" }

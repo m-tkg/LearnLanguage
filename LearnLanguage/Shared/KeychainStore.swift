@@ -18,28 +18,48 @@ enum KeychainStore {
     static let cloudflareAPITokenAccount = "cloudflareAPIToken"
 
     /// 値を保存する。nil/空文字なら削除。
+    /// 「削除→追加」ではなく「更新 or 追加」で書く（追加が失敗したときに項目が消えたままになる
+    /// 消失ウィンドウを作らない。iCloud キーチェーン同期下では削除も他端末へ伝播するため特に重要）。
     static func set(_ value: String?, account: String) {
-        // 旧（非同期）・新（同期）どちらの既存項目も消してから入れ直す。
-        let delete: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
-        ]
-        SecItemDelete(delete as CFDictionary)
-
         let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let trimmed, !trimmed.isEmpty, let data = trimmed.data(using: .utf8) else { return }
-        let add: [String: Any] = [
+        guard let trimmed, !trimmed.isEmpty, let data = trimmed.data(using: .utf8) else {
+            // 明示的なクリア: 旧（ローカル）・新（同期）どちらの項目も削除する。
+            let delete: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecAttrAccount as String: account,
+                kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
+            ]
+            SecItemDelete(delete as CFDictionary)
+            return
+        }
+
+        // 1. 既存の同期項目があればその場で値だけ更新する。
+        let syncQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
-            kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
-            // iCloud キーチェーンでの端末間同期を許可する。
             kSecAttrSynchronizable as String: true,
         ]
-        SecItemAdd(add as CFDictionary, nil)
+        let update: [String: Any] = [kSecValueData as String: data]
+        let updateStatus = SecItemUpdate(syncQuery as CFDictionary, update as CFDictionary)
+
+        // 2. 無ければ同期項目として新規追加する。
+        if updateStatus == errSecItemNotFound {
+            var add = syncQuery
+            add[kSecValueData as String] = data
+            add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            SecItemAdd(add as CFDictionary, nil)
+        }
+
+        // 3. 同期対応前の旧ローカル項目が残っていれば掃除する（二重存在の防止）。
+        let legacyDelete: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecAttrSynchronizable as String: false,
+        ]
+        SecItemDelete(legacyDelete as CFDictionary)
     }
 
     /// 値を取得する。無ければ nil。
