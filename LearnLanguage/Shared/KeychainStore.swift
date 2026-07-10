@@ -65,4 +65,44 @@ enum KeychainStore {
     static func exists(account: String) -> Bool {
         get(account: account)?.isEmpty == false
     }
+
+    // MARK: - 同期属性へのマイグレーション
+
+    /// iCloud キーチェーン同期対応（kSecAttrSynchronizable）より前に保存された
+    /// 端末ローカルの項目を、同期可能な項目として保存し直す（起動時に呼ぶ）。
+    /// 既に同期可能な項目がある account はスキップする（他端末から届いた新しい値を
+    /// 古いローカル値で上書きしないため）。
+    static func migrateToSynchronizable(accounts: [String]) {
+        for account in accounts {
+            guard !existsWithSynchronizable(true, account: account),
+                  let localValue = getWithSynchronizable(false, account: account),
+                  !localValue.isEmpty else { continue }
+            // set() は Any で旧項目を消してから synchronizable=true で入れ直す。
+            set(localValue, account: account)
+        }
+    }
+
+    /// 同期属性を指定して項目の有無を確認する。
+    private static func existsWithSynchronizable(_ synchronizable: Bool, account: String) -> Bool {
+        getWithSynchronizable(synchronizable, account: account) != nil
+    }
+
+    /// 同期属性を指定して値を取得する。
+    private static func getWithSynchronizable(_ synchronizable: Bool, account: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecAttrSynchronizable as String: synchronizable,
+        ]
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data,
+              let value = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return value
+    }
 }

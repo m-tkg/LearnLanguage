@@ -22,6 +22,13 @@ struct LearnLanguageApp: App {
             sync.start()
             return sync
         })
+        // 同期対応前に保存された API キー類（端末ローカル属性のまま）を、同期可能な項目に書き直す。
+        KeychainStore.migrateToSynchronizable(accounts: [
+            KeychainStore.geminiAPIKeyAccount,
+            KeychainStore.pollinationsAPIKeyAccount,
+            KeychainStore.cloudflareAccountIDAccount,
+            KeychainStore.cloudflareAPITokenAccount,
+        ])
     }
 
     var body: some Scene {
