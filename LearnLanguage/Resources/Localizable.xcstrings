@@ -1,12 +1,6 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
-    "再生成（言語を選択）" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Regenerate (choose language)" } } } },
-    "再生成します（学習対象言語: %@）。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Regenerating (learning language: %@)." } } } },
-    "意味を調べています…" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Looking up…" } } } },
-    "学習対象言語" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Learning Language" } } } },
-    "学習対象言語は新しく作る教材の既定値です（追加時に記事ごとに変更可能）。元記事が別の言語でも、この言語に翻訳して教材化します。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The learning language is the default for new study materials (you can change it per article when adding). Articles written in another language are translated into this language." } } } },
-    "元記事が別の言語でも、学習対象言語に翻訳して教材化します。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Articles written in another language are translated into the learning language." } } } },
     "—" : {
 
     },
@@ -414,7 +408,6 @@
       }
     },
     "レベル" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -522,6 +515,16 @@
         }
       }
     },
+    "元記事が別の言語でも、学習対象言語に翻訳して教材化します。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Articles written in another language are translated into the learning language."
+          }
+        }
+      }
+    },
     "元記事を開く" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -562,6 +565,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retrying."
+          }
+        }
+      }
+    },
+    "再生成（言語を選択）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regenerate (choose language)"
+          }
+        }
+      }
+    },
+    "再生成します（学習対象言語: %@）。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regenerating (learning language: %@)."
           }
         }
       }
@@ -671,23 +696,43 @@
         }
       }
     },
-    "失敗: " : {
+    "失敗: %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed: "
+            "value" : "Failed: %@"
           }
         }
       }
     },
     "学習" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Learning"
+          }
+        }
+      }
+    },
+    "学習対象言語" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learning Language"
+          }
+        }
+      }
+    },
+    "学習対象言語は新しく作る教材の既定値です（追加時に記事ごとに変更可能）。元記事が別の言語でも、この言語に翻訳して教材化します。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The learning language is the default for new study materials (you can change it per article when adding). Articles written in another language are translated into this language."
           }
         }
       }
@@ -728,6 +773,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting…"
+          }
+        }
+      }
+    },
+    "意味を調べています…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking up…"
           }
         }
       }
