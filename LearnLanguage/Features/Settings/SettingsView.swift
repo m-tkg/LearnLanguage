@@ -25,6 +25,8 @@ struct SettingsView: View {
     @State private var cloudflareAccountID = ""
     @State private var cloudflareAPIToken = ""
     @State private var cloudflareSaved = false
+    /// 保存完了トーストの表示。
+    @State private var showingSavedToast = false
 
     /// 母語の選択肢（多言語展開に備え、コード駆動で保持）。
     private let nativeLanguages: [(code: String, name: String)] = [
@@ -90,6 +92,7 @@ struct SettingsView: View {
                         Button("保存") {
                             KeychainStore.set(pollinationsAPIKey, account: KeychainStore.pollinationsAPIKeyAccount)
                             pollinationsKeySaved = KeychainStore.exists(account: KeychainStore.pollinationsAPIKeyAccount)
+                            showingSavedToast = true
                         }
                         .disabled(pollinationsAPIKey.trimmingCharacters(in: .whitespaces).isEmpty)
                     } header: {
@@ -112,6 +115,7 @@ struct SettingsView: View {
                             KeychainStore.set(cloudflareAPIToken, account: KeychainStore.cloudflareAPITokenAccount)
                             cloudflareSaved = KeychainStore.exists(account: KeychainStore.cloudflareAccountIDAccount)
                                 && KeychainStore.exists(account: KeychainStore.cloudflareAPITokenAccount)
+                            showingSavedToast = true
                         }
                         .disabled(cloudflareAccountID.trimmingCharacters(in: .whitespaces).isEmpty
                                   || cloudflareAPIToken.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -130,6 +134,7 @@ struct SettingsView: View {
                         Button("保存") {
                             KeychainStore.set(geminiAPIKey, account: KeychainStore.geminiAPIKeyAccount)
                             keySaved = KeychainStore.exists(account: KeychainStore.geminiAPIKeyAccount)
+                            showingSavedToast = true
                         }
                         .disabled(geminiAPIKey.trimmingCharacters(in: .whitespaces).isEmpty)
                     } header: {
@@ -152,6 +157,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("設定")
+            .toast("保存しました", isPresented: $showingSavedToast)
             .onAppear {
                 geminiAPIKey = KeychainStore.get(account: KeychainStore.geminiAPIKeyAccount) ?? ""
                 keySaved = !geminiAPIKey.isEmpty
