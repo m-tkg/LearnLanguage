@@ -5,10 +5,18 @@ options:
     iOS: "26.0"
   createIntermediateGroups: true
   developmentLanguage: ja
+attributes:
+  # Xcode の「Update to recommended settings」警告を抑止する（xcodegen の既定値 1430 のままだと
+  # Xcode 27 が毎回設定見直しを提案してくる）。推奨設定自体は下の settings に取り込み済み。
+  LastUpgradeCheck: "2700"
 settings:
   base:
     SWIFT_VERSION: "6.0"
     GENERATE_INFOPLIST_FILE: YES
+    # ↓ Xcode 27 の推奨設定（Update to recommended settings の提案内容を yml 側で採用）。
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
+    STRING_CATALOG_GENERATE_SYMBOLS: YES
     MARKETING_VERSION: "0.2.4"
     CURRENT_PROJECT_VERSION: "6"
     TARGETED_DEVICE_FAMILY: "1,2"
