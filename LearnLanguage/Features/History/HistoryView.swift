@@ -6,6 +6,8 @@ import SwiftData
 struct HistoryView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(GenerationQueue.self) private var queue
+    /// 再生成時に使う学習対象言語（設定の現在値に自動追従）。
+    @AppStorage("targetLanguageCode") private var targetLanguageCode = "en"
     // 手動並び替え順（sortIndex 昇順）を主、同値は作成日の新しい順。
     @Query(sort: [SortDescriptor(\LearningArticle.sortIndex, order: .forward),
                   SortDescriptor(\LearningArticle.createdAt, order: .reverse)])
@@ -37,21 +39,11 @@ struct HistoryView: View {
                                             Label("再実行", systemImage: "arrow.clockwise")
                                         }
                                     }
-                                    // 学習対象言語を選び直して最初から作り直す（実行した端末が生成を担当）。
-                                    Menu {
-                                        ForEach(LanguageOptions.all, id: \.code) { language in
-                                            Button {
-                                                queue.regenerate(article, targetLanguageCode: language.code)
-                                            } label: {
-                                                if language.code == article.languageCode {
-                                                    Label(language.name, systemImage: "checkmark")
-                                                } else {
-                                                    Text(language.name)
-                                                }
-                                            }
-                                        }
+                                    // 現在の学習対象言語（設定）で最初から作り直す（実行した端末が生成を担当）。
+                                    Button {
+                                        queue.regenerate(article, targetLanguageCode: targetLanguageCode)
                                     } label: {
-                                        Label("再生成（言語を選択）", systemImage: "arrow.triangle.2.circlepath")
+                                        Label("再生成", systemImage: "arrow.triangle.2.circlepath")
                                     }
                                     Button {
                                         logArticle = article
