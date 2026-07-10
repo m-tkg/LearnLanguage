@@ -43,7 +43,8 @@ struct BatchProcessor {
         for article in batch {
             article.status = .processing
             article.failureReason = nil
-            log(article, "処理を開始しました。")
+            // 担当端末を記録する（iCloud 同期先の端末で「どの端末が処理しているか」を切り分けるため）。
+            log(article, "処理を開始しました（担当: %@）。", [DeviceID.displayLabel])
         }
         try? modelContext.save()
 

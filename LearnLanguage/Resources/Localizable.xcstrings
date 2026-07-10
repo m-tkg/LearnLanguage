@@ -636,6 +636,16 @@
         }
       }
     },
+    "処理を開始しました（担当: %@）。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Started processing (on %@)."
+          }
+        }
+      }
+    },
     "処理中" : {
       "localizations" : {
         "en" : {

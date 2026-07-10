@@ -138,6 +138,31 @@ final class GenerationQueueTests: XCTestCase {
                        "後から追加した記事が sortIndex 最小＝先頭に来る")
     }
 
+    /// 処理開始ログに「どの端末が処理したか」が記録される（iCloud 同期先で
+    /// 「他端末の進捗表示」と「この端末の実処理」を切り分けられるようにするため）。
+    func testProcessingStartLogRecordsExecutingDeviceLabel() async throws {
+        let context = try makeContext()
+        let article = makeQueuedArticle()
+        context.insert(article)
+        try context.save()
+        let queue = GenerationQueue(
+            modelContext: context,
+            makeExtractor: { ExtractorSpy(result: .success(self.makeExtracted())) },
+            makeOnDeviceRewriter: { OnDeviceRewriterSpy(result: .success(self.makeRewritten())) },
+            makeBatchRewriter: { nil },
+            makeIllustrator: { IllustratorSpy() }
+        )
+
+        await queue.processIfNeeded()
+
+        let logs = try context.fetch(FetchDescriptor<ArticleLogEntry>())
+        let start = logs.first { $0.messageKey.hasPrefix("処理を開始しました") }
+        XCTAssertNotNil(start, "処理開始ログが記録される")
+        XCTAssertEqual(start?.messageArgs.first, DeviceID.displayLabel,
+                       "処理開始ログに担当端末のラベルが入る")
+        XCTAssertFalse(DeviceID.displayLabel.isEmpty)
+    }
+
     // MARK: - 処理パイプライン（processIfNeeded を直接 await して決定的に検証）
 
     func testHappyPathReachesCompletedAndCallsEachServiceOnce() async throws {
