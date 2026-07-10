@@ -9,6 +9,8 @@ struct SegmentPageView: View {
 
     @Environment(\.modelContext) private var modelContext
     @State private var translationController = TranslationController()
+    /// 長押しで意味を表示する対象の単語。
+    @State private var wordSelection: WordSelection?
 
     var body: some View {
         GeometryReader { geo in
@@ -35,6 +37,27 @@ struct SegmentPageView: View {
         .onChange(of: nativeLanguageCode) { _, _ in
             translationController.reset()
         }
+        // 単語の長押し → 意味（母語）を下部シートで表示する。
+        .sheet(item: $wordSelection) { selection in
+            WordMeaningSheet(
+                word: selection.word,
+                glossaryTranslation: glossaryTranslation(for: selection.word),
+                nativeLanguageCode: nativeLanguageCode
+            )
+            .presentationDetents([.height(200)])
+            .presentationDragIndicator(.visible)
+        }
+    }
+
+    /// 用語集から単語の訳を引く（surface 完全一致を優先、複数語 surface の構成語も許容）。
+    private func glossaryTranslation(for word: String) -> String? {
+        let lowered = word.lowercased()
+        if let exact = segment.glossary.first(where: { $0.surface.lowercased() == lowered }) {
+            return exact.translation
+        }
+        return segment.glossary.first { term in
+            term.surface.lowercased().split(separator: " ").contains(Substring(lowered))
+        }?.translation
     }
 
     /// 正方形のイラスト枠（生成画像も正方形なので歪まない）。失敗時は上部に「再作成」ボタンを出す。
@@ -79,12 +102,12 @@ struct SegmentPageView: View {
     private var textContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text(GlossaryHighlighter.attributedString(
-                    for: segment.rewrittenText,
-                    surfaces: segment.glossary.map(\.surface)
-                ))
+                WordTappableText(
+                    text: segment.rewrittenText,
+                    glossarySurfaces: segment.glossary.map(\.surface),
+                    onWordLongPress: { word in wordSelection = WordSelection(word: word) }
+                )
                 .font(.body)
-                .lineSpacing(6)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 TranslationSection(
