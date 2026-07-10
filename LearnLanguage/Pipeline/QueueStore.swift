@@ -15,10 +15,12 @@ struct QueueStore {
     }
 
     /// 待機中の記事を古い順に最大 `batchSize` 件取得する。
+    /// **この端末がオーナーの記事のみ**（iCloud 同期で流れてきた他端末の待機中記事は処理しない）。
     func nextQueuedBatch() -> [LearningArticle] {
         let queued = ArticleStatus.queued.rawValue
+        let mine = DeviceID.current
         var descriptor = FetchDescriptor<LearningArticle>(
-            predicate: #Predicate { $0.statusRaw == queued },
+            predicate: #Predicate { $0.statusRaw == queued && $0.ownerDeviceID == mine },
             sortBy: [SortDescriptor(\.createdAt, order: .forward)]
         )
         descriptor.fetchLimit = Self.batchSize
@@ -35,10 +37,14 @@ struct QueueStore {
     }
 
     /// 指定ステータスの記事を queued に戻す（起動時の再開など）。呼び出し側がキュー処理の再開を担う。
+    /// **この端末がオーナーの記事のみ**（他端末で処理中の記事を横取りして再開しない）。
     func requeue(statuses: [ArticleStatus]) {
         let raws = statuses.map(\.rawValue)
+        let mine = DeviceID.current
         let targets = (try? modelContext.fetch(
-            FetchDescriptor<LearningArticle>(predicate: #Predicate { raws.contains($0.statusRaw) })
+            FetchDescriptor<LearningArticle>(
+                predicate: #Predicate { raws.contains($0.statusRaw) && $0.ownerDeviceID == mine }
+            )
         )) ?? []
         for article in targets { article.status = .queued }
         if !targets.isEmpty { try? modelContext.save() }

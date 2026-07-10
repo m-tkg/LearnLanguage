@@ -69,7 +69,8 @@ final class GenerationQueueTests: XCTestCase {
 
     private func makeQueuedArticle(
         title: String = "Example",
-        segments: [ArticleSegment] = []
+        segments: [ArticleSegment] = [],
+        ownerDeviceID: String = DeviceID.current
     ) -> LearningArticle {
         let article = LearningArticle(
             sourceURL: URL(string: "https://example.com/\(UUID().uuidString)")!,
@@ -79,6 +80,7 @@ final class GenerationQueueTests: XCTestCase {
             targetLevel: ReadingLevel.beginner.storageValue
         )
         article.status = .queued
+        article.ownerDeviceID = ownerDeviceID
         article.segments = segments
         for segment in segments { segment.article = article }
         return article
@@ -299,6 +301,111 @@ final class GenerationQueueTests: XCTestCase {
         XCTAssertEqual(illustrator.callCount, 1, "未完のイラストだけ再生成する")
         XCTAssertEqual(article.status, .completed)
         XCTAssertTrue(article.segments.allSatisfy { $0.imageState == .ready })
+    }
+
+    // MARK: - 端末オーナーシップ（iCloud 同期先で二重生成しない）
+
+    func testOtherDevicesQueuedArticleIsNotProcessed() async throws {
+        let context = try makeContext()
+        let extractor = ExtractorSpy(result: .success(makeExtracted()))
+        let queue = GenerationQueue(
+            modelContext: context,
+            makeExtractor: { extractor },
+            makeOnDeviceRewriter: { OnDeviceRewriterSpy(result: .failure(URLError(.badURL))) },
+            makeBatchRewriter: { BatchRewriterSpy(result: .success([self.makeRewritten()])) },
+            makeIllustrator: { IllustratorSpy() }
+        )
+
+        // iCloud 同期で流れてきた「他端末がオーナーの待機中記事」を模す。
+        let foreign = makeQueuedArticle(title: "from-iphone", ownerDeviceID: "other-device")
+        context.insert(foreign)
+        try context.save()
+
+        await queue.processIfNeeded()
+
+        XCTAssertEqual(extractor.callCount, 0, "他端末の記事はこの端末で処理しない")
+        XCTAssertEqual(foreign.status, .queued, "ステータスも触らない（オーナー端末が処理する）")
+    }
+
+    func testResumePendingSkipsOtherDevicesProcessingArticle() async throws {
+        let context = try makeContext()
+        let extractor = ExtractorSpy(result: .success(makeExtracted()))
+        let queue = GenerationQueue(
+            modelContext: context,
+            makeExtractor: { extractor },
+            makeOnDeviceRewriter: { OnDeviceRewriterSpy(result: .failure(URLError(.badURL))) },
+            makeBatchRewriter: { BatchRewriterSpy(result: .success([self.makeRewritten()])) },
+            makeIllustrator: { IllustratorSpy() }
+        )
+
+        // 他端末で処理中（同期で見えているだけ）の記事。
+        let foreign = makeQueuedArticle(title: "processing-on-iphone", ownerDeviceID: "other-device")
+        foreign.status = .processing
+        context.insert(foreign)
+        try context.save()
+
+        queue.resumePending()
+        await queue.processIfNeeded()
+
+        XCTAssertEqual(foreign.status, .processing, "他端末の処理中記事を requeue で横取りしない")
+        XCTAssertEqual(extractor.callCount, 0)
+    }
+
+    func testRetryClaimsOwnershipAndProcesses() async throws {
+        let context = try makeContext()
+        let extractor = ExtractorSpy(result: .success(makeExtracted()))
+        let queue = GenerationQueue(
+            modelContext: context,
+            makeExtractor: { extractor },
+            makeOnDeviceRewriter: { OnDeviceRewriterSpy(result: .failure(URLError(.badURL))) },
+            makeBatchRewriter: { BatchRewriterSpy(result: .success([self.makeRewritten()])) },
+            makeIllustrator: { IllustratorSpy() }
+        )
+
+        // 他端末で失敗した記事を、この端末で引き取って再実行する。
+        let foreign = makeQueuedArticle(title: "failed-elsewhere", ownerDeviceID: "other-device")
+        foreign.status = .failed
+        context.insert(foreign)
+        try context.save()
+
+        queue.retry(foreign)
+        await queue.processIfNeeded()
+
+        XCTAssertEqual(foreign.ownerDeviceID, DeviceID.current, "再実行した端末が新しいオーナーになる")
+        XCTAssertEqual(foreign.status, .completed)
+        XCTAssertEqual(extractor.callCount, 1)
+    }
+
+    // MARK: - 再生成（学習対象言語の変更）
+
+    func testRegenerateClearsSegmentsAndRebuildsInNewLanguage() async throws {
+        let context = try makeContext()
+        let extractor = ExtractorSpy(result: .success(makeExtracted()))
+        let batchRewriter = BatchRewriterSpy(result: .success([makeRewritten(count: 2)]))
+        let queue = GenerationQueue(
+            modelContext: context,
+            makeExtractor: { extractor },
+            makeOnDeviceRewriter: { OnDeviceRewriterSpy(result: .failure(URLError(.badURL))) },
+            makeBatchRewriter: { batchRewriter },
+            makeIllustrator: { IllustratorSpy() }
+        )
+
+        // 完成済みの英語教材（セグメントあり）。
+        let done = ArticleSegment(order: 0, rewrittenText: "old english", imageData: Data([0x01]), imageState: .ready)
+        let article = makeQueuedArticle(segments: [done])
+        article.status = .completed
+        context.insert(article)
+        try context.save()
+
+        queue.regenerate(article, targetLanguageCode: "fr")
+        await queue.processIfNeeded()
+
+        XCTAssertEqual(article.languageCode, "fr", "学習対象言語が更新される")
+        XCTAssertEqual(extractor.callCount, 1, "セグメントを破棄したので再抽出される（冪等スキップに掛からない）")
+        XCTAssertEqual(batchRewriter.lastItems.first?.languageCode, "fr", "新しい言語で書き換えを依頼する")
+        XCTAssertEqual(article.status, .completed)
+        XCTAssertEqual(article.segments.count, 2)
+        XCTAssertFalse(article.segments.contains { $0.rewrittenText == "old english" }, "旧セグメントは残らない")
     }
 
     // MARK: - 削除された記事の安全な中断

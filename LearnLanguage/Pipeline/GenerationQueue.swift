@@ -50,6 +50,8 @@ final class GenerationQueue {
             originalText: ""
         )
         article.status = .queued
+        // この端末が生成を担当する（iCloud 同期先の他端末では処理させない）。
+        article.ownerDeviceID = DeviceID.current
         // 一覧の先頭に出すため、現在の最小 sortIndex より小さい値を割り当てる。
         article.sortIndex = store.currentMinSortIndex() - 1
         modelContext.insert(article)
@@ -66,11 +68,29 @@ final class GenerationQueue {
     }
 
     /// 指定した記事だけを再実行する（一覧の長押し → 「再実行」）。
+    /// この端末が新しいオーナーになる（他端末で失敗した記事も、こちらで引き取って再実行できる）。
     func retry(_ article: LearningArticle) {
         guard !article.isDeleted else { return }
         article.status = .queued
         article.failureReason = nil
+        article.ownerDeviceID = DeviceID.current
         articleLogger.log(article, "再実行します。")
+        try? modelContext.save()
+        Task { await processIfNeeded() }
+    }
+
+    /// 記事を指定の学習対象言語で最初から作り直す（一覧の長押し → 「再生成」）。
+    /// 既存のセグメント（本文・イラスト）を破棄して再抽出・再書き換えする。
+    /// この端末が新しいオーナーになる。
+    func regenerate(_ article: LearningArticle, targetLanguageCode: String) {
+        guard !article.isDeleted else { return }
+        article.languageCode = targetLanguageCode
+        article.segments = []   // cascade でセグメント・用語集・画像も削除される
+        article.status = .queued
+        article.failureReason = nil
+        article.ownerDeviceID = DeviceID.current
+        articleLogger.log(article, "再生成します（学習対象言語: %@）。",
+                          [LanguageOptions.name(for: targetLanguageCode)])
         try? modelContext.save()
         Task { await processIfNeeded() }
     }

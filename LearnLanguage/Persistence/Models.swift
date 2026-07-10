@@ -55,6 +55,10 @@ final class LearningArticle {
     var failureReason: String? = nil
     /// 一覧での手動並び替え順（小さいほど上に表示）。既定 0。
     var sortIndex: Int = 0
+    /// 生成を担当する端末の ID（`DeviceID.current`）。iCloud 同期で記事が他端末に現れても、
+    /// オーナー端末以外はキュー処理しない（二重生成・API 二重消費の防止）。
+    /// 「再実行」「再生成」を実行した端末が新しいオーナーになる。既定は空（旧データ互換・どの端末も自動処理しない）。
+    var ownerDeviceID: String = ""
     /// この記事専用の読み上げ速度（nil のときは設定のデフォルト速度を使う）。
     var speechRate: Double? = nil
 

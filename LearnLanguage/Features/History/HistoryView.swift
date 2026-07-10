@@ -37,6 +37,22 @@ struct HistoryView: View {
                                             Label("再実行", systemImage: "arrow.clockwise")
                                         }
                                     }
+                                    // 学習対象言語を選び直して最初から作り直す（実行した端末が生成を担当）。
+                                    Menu {
+                                        ForEach(LanguageOptions.all, id: \.code) { language in
+                                            Button {
+                                                queue.regenerate(article, targetLanguageCode: language.code)
+                                            } label: {
+                                                if language.code == article.languageCode {
+                                                    Label(language.name, systemImage: "checkmark")
+                                                } else {
+                                                    Text(language.name)
+                                                }
+                                            }
+                                        }
+                                    } label: {
+                                        Label("再生成（言語を選択）", systemImage: "arrow.triangle.2.circlepath")
+                                    }
                                     Button {
                                         logArticle = article
                                     } label: {
