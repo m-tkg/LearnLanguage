@@ -1,7 +1,6 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
-    "保存しました" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved" } } } },
     "—" : {
 
     },
@@ -90,8 +89,6 @@
         }
       }
     },
-    "Cloudflare の認証に失敗しました(401)。「API トークン」（Bearer 用）を使っているか（Global API Key は不可）、トークンに Workers AI の権限があるか、Account ID が正しいかを確認してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloudflare authentication failed (401). Make sure you're using an API Token (for Bearer auth — the Global API Key won't work), that the token has the Workers AI permission, and that the Account ID is correct." } } } },
-    "Cloudflare の認証に失敗しました(403)。「API トークン」（Bearer 用）を使っているか（Global API Key は不可）、トークンに Workers AI の権限があるか、Account ID が正しいかを確認してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloudflare authentication failed (403). Make sure you're using an API Token (for Bearer auth — the Global API Key won't work), that the token has the Workers AI permission, and that the Account ID is correct." } } } },
     "Cloudflare の Account ID と API トークンが未設定です。設定画面で入力してください。" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -99,6 +96,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cloudflare Account ID and API token are not set. Enter them in Settings."
+          }
+        }
+      }
+    },
+    "Cloudflare の認証に失敗しました(401)。「API トークン」（Bearer 用）を使っているか（Global API Key は不可）、トークンに Workers AI の権限があるか、Account ID が正しいかを確認してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloudflare authentication failed (401). Make sure you're using an API Token (for Bearer auth — the Global API Key won't work), that the token has the Workers AI permission, and that the Account ID is correct."
+          }
+        }
+      }
+    },
+    "Cloudflare の認証に失敗しました(403)。「API トークン」（Bearer 用）を使っているか（Global API Key は不可）、トークンに Workers AI の権限があるか、Account ID が正しいかを確認してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloudflare authentication failed (403). Make sure you're using an API Token (for Bearer auth — the Global API Key won't work), that the token has the Workers AI permission, and that the Account ID is correct."
           }
         }
       }
@@ -472,6 +491,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save"
+          }
+        }
+      }
+    },
+    "保存しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved"
           }
         }
       }

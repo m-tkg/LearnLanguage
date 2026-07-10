@@ -1,7 +1,8 @@
-# LearnLanguage
+# LearnLanguage — 開発ガイド（Claude Code 向け）
 
 英語（将来多言語）学習アプリ。URL の記事を AI でレベル別に書き換え、イラスト生成・読み上げ・
 履歴保存する。iOS 26+、SwiftUI + `@Observable` + SwiftData、xcodegen（`project.yml` が正）。
+機能一覧・セットアップ手順は `README.md` を参照。
 
 作業前に **`docs/ARCHITECTURE.md`** を読むこと。レイヤと依存方向、破ってはいけない規範
 （ローカライズは key ベース、Gemini アクセスは `GeminiClient` 経由のみ、等）をまとめてある。
