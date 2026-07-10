@@ -112,4 +112,71 @@ final class IllustrationTests: XCTestCase {
         XCTAssertTrue(reason.contains("530"), "エラー文言にステータスコードを含める: \(reason)")
         XCTAssertEqual(MockURLProtocol.requestCount, 4, "最大4回試行して諦める")
     }
+
+    // MARK: - Cloudflare Workers AI
+
+    private func makeCloudflare(
+        accountID: String? = "acc-123",
+        apiToken: String? = "token-xyz"
+    ) -> CloudflareIllustrator {
+        CloudflareIllustrator(
+            accountID: { accountID },
+            apiToken: { apiToken },
+            session: MockURLProtocol.session,
+            retryBaseDelay: 0
+        )
+    }
+
+    func testCloudflareMissingCredentialsFailsWithoutNetworkCall() async {
+        MockURLProtocol.requestCount = 0
+
+        let result = await makeCloudflare(accountID: nil, apiToken: nil).illustrate(prompt: "a cat")
+
+        guard case .failure(let reason) = result else { return XCTFail("認証情報なしは失敗するはず") }
+        XCTAssertTrue(reason.contains("Cloudflare"), "設定を促す文言: \(reason)")
+        XCTAssertEqual(MockURLProtocol.requestCount, 0, "認証情報が無ければリクエストを送らない")
+    }
+
+    func testCloudflareSuccessDecodesBase64Image() async {
+        MockURLProtocol.requestCount = 0
+        let imageBytes = Data([0xFF, 0xD8, 0xFF])
+        let body = #"{"result":{"image":"\#(imageBytes.base64EncodedString())"},"success":true}"#
+        var captured: URLRequest?
+        MockURLProtocol.stub = { request in
+            captured = request
+            return (200, Data(body.utf8))
+        }
+
+        let result = await makeCloudflare().illustrate(prompt: "a cat")
+
+        guard case .success(let data) = result else { return XCTFail("成功応答をデコードできるはず: \(result)") }
+        XCTAssertEqual(data, imageBytes)
+        let url = captured?.url?.absoluteString ?? ""
+        XCTAssertTrue(url.contains("/accounts/acc-123/ai/run/"), "Account ID がパスに入る: \(url)")
+        XCTAssertTrue(url.contains("flux-1-schnell"), "FLUX schnell を使う: \(url)")
+        XCTAssertEqual(captured?.value(forHTTPHeaderField: "Authorization"), "Bearer token-xyz")
+    }
+
+    func testCloudflare5xxIsRetriedUntilSuccess() async {
+        MockURLProtocol.requestCount = 0
+        let body = #"{"result":{"image":"\#(Data([0x01]).base64EncodedString())"},"success":true}"#
+        MockURLProtocol.stub = { _ in
+            MockURLProtocol.requestCount <= 2 ? (503, Data()) : (200, Data(body.utf8))
+        }
+
+        let result = await makeCloudflare().illustrate(prompt: "a cat")
+
+        guard case .success = result else { return XCTFail("5xx はリトライで回復するはず: \(result)") }
+        XCTAssertEqual(MockURLProtocol.requestCount, 3)
+    }
+
+    func testCloudflareAuthErrorFailsWithoutRetry() async {
+        MockURLProtocol.requestCount = 0
+        MockURLProtocol.stub = { _ in (403, Data(#"{"success":false,"errors":[{"message":"Authentication error"}]}"#.utf8)) }
+
+        let result = await makeCloudflare().illustrate(prompt: "a cat")
+
+        guard case .failure = result else { return XCTFail("403 は失敗するはず") }
+        XCTAssertEqual(MockURLProtocol.requestCount, 1, "認証エラーはリトライしない")
+    }
 }

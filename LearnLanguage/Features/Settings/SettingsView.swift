@@ -21,6 +21,10 @@ struct SettingsView: View {
     /// Pollinations API キー（任意）。
     @State private var pollinationsAPIKey = ""
     @State private var pollinationsKeySaved = false
+    /// Cloudflare Workers AI の認証情報（Account ID + API トークン）。
+    @State private var cloudflareAccountID = ""
+    @State private var cloudflareAPIToken = ""
+    @State private var cloudflareSaved = false
 
     /// 母語の選択肢（多言語展開に備え、コード駆動で保持）。
     private let nativeLanguages: [(code: String, name: String)] = [
@@ -75,7 +79,7 @@ struct SettingsView: View {
                 } header: {
                     Text("イラスト生成")
                 } footer: {
-                    Text("「無料（Pollinations）」はキー不要・自動生成です。「Gemini」は API キーが必要で、無料枠では画像生成が制限される（429）ため実質有料です。")
+                    Text("「無料（Pollinations）」はキー不要・自動生成です（混雑時に失敗することがあります）。「Cloudflare」は無料アカウント登録が必要ですが無料枠が広く安定しています。「Gemini」は無料枠では画像生成が制限される（429）ため実質有料です。")
                 }
 
                 if imageProvider == ImageProvider.pollinations.rawValue {
@@ -92,6 +96,29 @@ struct SettingsView: View {
                         Text("Pollinations API キー（任意）")
                     } footer: {
                         Text("未設定でも使えます（匿名: 15秒に1回）。auth.pollinations.ai で無料登録してキーを入れると 5秒に1回に緩和され、失敗が減ります。キーは端末の Keychain にのみ保存されます。\(pollinationsKeySaved ? "  ✅ 設定済み" : "")")
+                    }
+                }
+
+                if imageProvider == ImageProvider.cloudflare.rawValue {
+                    Section {
+                        TextField("Account ID", text: $cloudflareAccountID)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                        SecureField("API トークン", text: $cloudflareAPIToken)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                        Button("保存") {
+                            KeychainStore.set(cloudflareAccountID, account: KeychainStore.cloudflareAccountIDAccount)
+                            KeychainStore.set(cloudflareAPIToken, account: KeychainStore.cloudflareAPITokenAccount)
+                            cloudflareSaved = KeychainStore.exists(account: KeychainStore.cloudflareAccountIDAccount)
+                                && KeychainStore.exists(account: KeychainStore.cloudflareAPITokenAccount)
+                        }
+                        .disabled(cloudflareAccountID.trimmingCharacters(in: .whitespaces).isEmpty
+                                  || cloudflareAPIToken.trimmingCharacters(in: .whitespaces).isEmpty)
+                    } header: {
+                        Text("Cloudflare Workers AI")
+                    } footer: {
+                        Text("dash.cloudflare.com で無料アカウントを作成し、「Workers AI」の権限を付けた API トークンを発行してください。Account ID はダッシュボードの右サイドバー（または URL）に表示されます。無料枠は1日単位でリセットされます。いずれも端末の Keychain にのみ保存されます。\(cloudflareSaved ? "  ✅ 設定済み" : "")")
                     }
                 }
 

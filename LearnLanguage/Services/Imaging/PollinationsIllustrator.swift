@@ -17,24 +17,14 @@ struct PollinationsIllustrator: IllustrationGenerating {
     /// リトライのバックオフ基準秒（attempt に対し 2^(attempt+1) 倍）。テストでは 0 にして待ちを消す。
     var retryBaseDelay: TimeInterval = 1
 
-    /// 429（レート制限）と 5xx（Pollinations は Cloudflare 経由のため 530 等の一時障害が出やすい）はリトライする。
-    private static let maxAttempts = 4
-
     func illustrate(prompt: String) async -> IllustrationResult {
         guard let url = Self.makeURL(prompt: prompt, width: width, height: height) else {
             return .failure(reason: "画像URLの生成に失敗しました。")
         }
-        var result = IllustrationResult.failure(reason: "通信に失敗しました。")
-        for attempt in 0..<Self.maxAttempts {
-            let (outcome, retryable) = await requestOnce(url: url)
-            result = outcome
-            if case .success = outcome { return outcome }
-            guard retryable, attempt < Self.maxAttempts - 1 else { break }
-            let wait = retryBaseDelay * Double(1 << (attempt + 1))
-            Self.logger.info("Pollinations retrying in \(wait, privacy: .public)s (attempt \(attempt + 1, privacy: .public))")
-            try? await Task.sleep(for: .seconds(wait))
+        // 429/5xx（Pollinations は Cloudflare 経由のため 530 等の一時障害が出やすい）はリトライする。
+        return await IllustratorRetry.run(baseDelay: retryBaseDelay) {
+            await requestOnce(url: url)
         }
-        return result
     }
 
     /// 1 回だけリクエストする。戻り値の retryable は「待てば回復しうる失敗（429/5xx/通信エラー）」か。

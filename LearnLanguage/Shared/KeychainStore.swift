@@ -9,6 +9,10 @@ enum KeychainStore {
     static let geminiAPIKeyAccount = "geminiAPIKey"
     /// Pollinations API キー（任意, Seed tier でレート緩和）の Keychain アカウント名。
     static let pollinationsAPIKeyAccount = "pollinationsAPIKey"
+    /// Cloudflare Workers AI の Account ID の Keychain アカウント名。
+    static let cloudflareAccountIDAccount = "cloudflareAccountID"
+    /// Cloudflare Workers AI の API トークンの Keychain アカウント名。
+    static let cloudflareAPITokenAccount = "cloudflareAPIToken"
 
     /// 値を保存する。nil/空文字なら削除。
     static func set(_ value: String?, account: String) {
