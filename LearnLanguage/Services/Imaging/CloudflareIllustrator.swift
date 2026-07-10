@@ -50,6 +50,10 @@ struct CloudflareIllustrator: IllustrationGenerating {
                 return (.failure(reason: "通信に失敗しました。"), true)
             }
             guard http.statusCode == 200 else {
+                // 認証エラーは待っても直らない → 原因の切り分けを具体的に案内する。
+                if http.statusCode == 401 || http.statusCode == 403 {
+                    return (.failure(reason: "Cloudflare の認証に失敗しました(\(http.statusCode))。「API トークン」（Bearer 用）を使っているか（Global API Key は不可）、トークンに Workers AI の権限があるか、Account ID が正しいかを確認してください。"), false)
+                }
                 let message = Self.errorMessage(from: data)
                 let retryable = http.statusCode == 429 || (500...599).contains(http.statusCode)
                 return (.failure(reason: "Cloudflare APIエラー(\(http.statusCode))\(message.map { ": \($0)" } ?? "")。"),

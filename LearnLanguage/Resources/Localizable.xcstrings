@@ -1,13 +1,6 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
-    "Cloudflare（無料枠・要設定）" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloudflare (free tier, setup required)" } } } },
-    "「無料（Pollinations）」はキー不要・自動生成です（混雑時に失敗することがあります）。「Cloudflare」は無料アカウント登録が必要ですが無料枠が広く安定しています。「Gemini」は無料枠では画像生成が制限される（429）ため実質有料です。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "\"Free (Pollinations)\" needs no key and generates automatically (may fail when busy). \"Cloudflare\" requires a free account but has a generous, reliable free tier. \"Gemini\" is effectively paid because image generation is blocked on the free tier (429)." } } } },
-    "Cloudflare Workers AI" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloudflare Workers AI" } } } },
-    "Account ID" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Account ID" } } } },
-    "API トークン" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "API Token" } } } },
-    "dash.cloudflare.com で無料アカウントを作成し、「Workers AI」の権限を付けた API トークンを発行してください。Account ID はダッシュボードの右サイドバー（または URL）に表示されます。無料枠は1日単位でリセットされます。いずれも端末の Keychain にのみ保存されます。%@" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Create a free account at dash.cloudflare.com and issue an API token with the \"Workers AI\" permission. Your Account ID is shown in the dashboard's right sidebar (or in the URL). The free tier resets daily. Both are stored only in the device Keychain.%@" } } } },
-    "Cloudflare の Account ID と API トークンが未設定です。設定画面で入力してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloudflare Account ID and API token are not set. Enter them in Settings." } } } },
     "—" : {
 
     },
@@ -22,11 +15,22 @@
       }
     },
     "「無料（Pollinations）」はキー不要・自動生成です。「Gemini」は API キーが必要で、無料枠では画像生成が制限される（429）ため実質有料です。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "\"Free (Pollinations)\" needs no key and generates automatically. \"Gemini\" needs an API key and is effectively paid because image generation is blocked on the free tier (429)."
+          }
+        }
+      }
+    },
+    "「無料（Pollinations）」はキー不要・自動生成です（混雑時に失敗することがあります）。「Cloudflare」は無料アカウント登録が必要ですが無料枠が広く安定しています。「Gemini」は無料枠では画像生成が制限される（429）ため実質有料です。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"Free (Pollinations)\" needs no key and generates automatically (may fail when busy). \"Cloudflare\" requires a free account but has a generous, reliable free tier. \"Gemini\" is effectively paid because image generation is blocked on the free tier (429)."
           }
         }
       }
@@ -42,6 +46,28 @@
         }
       }
     },
+    "Account ID" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account ID"
+          }
+        }
+      }
+    },
+    "API トークン" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Token"
+          }
+        }
+      }
+    },
     "APIキーが認証されませんでした。Google AI Studio で発行した Gemini API キーを設定に貼り直し、キーの利用制限（API/アプリ制限）や、対象プロジェクトで Generative Language API が有効かを確認してください。" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -49,6 +75,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The API key could not be authenticated. Re-paste a Gemini API key issued from Google AI Studio into Settings, and check the key's restrictions (API/app restrictions) and whether the Generative Language API is enabled for the project."
+          }
+        }
+      }
+    },
+    "Cloudflare Workers AI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloudflare Workers AI"
+          }
+        }
+      }
+    },
+    "Cloudflare の認証に失敗しました(401)。「API トークン」（Bearer 用）を使っているか（Global API Key は不可）、トークンに Workers AI の権限があるか、Account ID が正しいかを確認してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloudflare authentication failed (401). Make sure you're using an API Token (for Bearer auth — the Global API Key won't work), that the token has the Workers AI permission, and that the Account ID is correct." } } } },
+    "Cloudflare の認証に失敗しました(403)。「API トークン」（Bearer 用）を使っているか（Global API Key は不可）、トークンに Workers AI の権限があるか、Account ID が正しいかを確認してください。" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloudflare authentication failed (403). Make sure you're using an API Token (for Bearer auth — the Global API Key won't work), that the token has the Workers AI permission, and that the Account ID is correct." } } } },
+    "Cloudflare の Account ID と API トークンが未設定です。設定画面で入力してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloudflare Account ID and API token are not set. Enter them in Settings."
+          }
+        }
+      }
+    },
+    "Cloudflare（無料枠・要設定）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloudflare (free tier, setup required)"
+          }
+        }
+      }
+    },
+    "dash.cloudflare.com で無料アカウントを作成し、「Workers AI」の権限を付けた API トークンを発行してください。Account ID はダッシュボードの右サイドバー（または URL）に表示されます。無料枠は1日単位でリセットされます。いずれも端末の Keychain にのみ保存されます。%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create a free account at dash.cloudflare.com and issue an API token with the \"Workers AI\" permission. Your Account ID is shown in the dashboard's right sidebar (or in the URL). The free tier resets daily. Both are stored only in the device Keychain.%@"
           }
         }
       }
