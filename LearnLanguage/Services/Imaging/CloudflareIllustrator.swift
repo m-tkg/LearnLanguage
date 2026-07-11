@@ -8,8 +8,8 @@ import os
 struct CloudflareIllustrator: IllustrationGenerating {
     private static let logger = Logger(subsystem: "com.mtkg.LearnLanguage", category: "Illustration")
 
-    /// 画像生成モデル。無料枠内で高速・正方形出力の FLUX schnell を既定にする。
-    var model: String = "@cf/black-forest-labs/flux-1-schnell"
+    /// 画像生成モデル。既定は無料枠（Neurons）を消費しない SDXL Lightning。
+    var model: CloudflareImageModel = .sdxlLightning
     var accountID: @Sendable () -> String? = { KeychainStore.get(account: KeychainStore.cloudflareAccountIDAccount) }
     var apiToken: @Sendable () -> String? = { KeychainStore.get(account: KeychainStore.cloudflareAPITokenAccount) }
     /// テストでネットワークをモックするための差し替え口。
@@ -23,7 +23,7 @@ struct CloudflareIllustrator: IllustrationGenerating {
         guard !account.isEmpty, !token.isEmpty else {
             return .failure(reason: "Cloudflare の Account ID と API トークンが未設定です。設定画面で入力してください。")
         }
-        guard let url = URL(string: "https://api.cloudflare.com/client/v4/accounts/\(account)/ai/run/\(model)") else {
+        guard let url = URL(string: "https://api.cloudflare.com/client/v4/accounts/\(account)/ai/run/\(model.rawValue)") else {
             return .failure(reason: "画像URLの生成に失敗しました。")
         }
         return await IllustratorRetry.run(baseDelay: retryBaseDelay) {

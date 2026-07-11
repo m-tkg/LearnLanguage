@@ -17,6 +17,30 @@ enum ImageProvider: String, CaseIterable, Identifiable {
     }
 }
 
+/// Cloudflare Workers AI の画像生成モデルの選択肢。設定（AppStorage）に保存する生値も担う。
+enum CloudflareImageModel: String, CaseIterable, Identifiable {
+    /// beta 提供中は $0.00 で Neurons（無料枠）を消費しない。
+    case sdxlLightning = "@cf/bytedance/stable-diffusion-xl-lightning"
+    /// 高品質だが約 172.8 Neurons/枚（無料枠 10,000 Neurons/日 ≒ 約57枚）。
+    case fluxSchnell = "@cf/black-forest-labs/flux-1-schnell"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .sdxlLightning: return "SDXL Lightning（無料枠を消費しない）"
+        case .fluxSchnell: return "FLUX schnell（高品質・1日約57枚）"
+        }
+    }
+
+    static let defaultsKey = "cloudflareImageModel"
+
+    /// 設定で選ばれているモデル。未設定なら無料枠を消費しない SDXL Lightning。
+    static var current: CloudflareImageModel {
+        CloudflareImageModel(rawValue: UserDefaults.standard.string(forKey: defaultsKey) ?? "") ?? .sdxlLightning
+    }
+}
+
 /// AppStorage の設定に従って実サービスのイラスト生成器を返す。
 /// View 以外からも読むため UserDefaults を直接参照する。
 enum IllustratorFactory {
