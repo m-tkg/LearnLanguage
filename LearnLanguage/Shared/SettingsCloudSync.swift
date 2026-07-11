@@ -32,6 +32,7 @@ final class SettingsCloudSync {
         RewriterFactory.providerDefaultsKey,
         IllustratorFactory.providerDefaultsKey,
         GeminiModel.defaultsKey,
+        CloudflareImageModel.defaultsKey,
     ]
 
     private let local: SettingsKeyValueStore

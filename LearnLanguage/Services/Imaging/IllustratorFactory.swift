@@ -33,6 +33,15 @@ enum CloudflareImageModel: String, CaseIterable, Identifiable {
         }
     }
 
+    /// リクエストに付ける推論ステップ数。FLUX schnell は 4 ステップ蒸留モデルなので明示する
+    /// （ステップも Neurons 課金対象のため最小限に）。SDXL Lightning は steps パラメータ非対応のため送らない。
+    var steps: Int? {
+        switch self {
+        case .fluxSchnell: return 4
+        case .sdxlLightning: return nil
+        }
+    }
+
     static let defaultsKey = "cloudflareImageModel"
 
     /// 設定で選ばれているモデル。未設定なら無料枠を消費しない SDXL Lightning。
@@ -52,7 +61,7 @@ enum IllustratorFactory {
         case .gemini:
             return GeminiIllustrator()
         case .cloudflare:
-            return CloudflareIllustrator()
+            return CloudflareIllustrator(model: CloudflareImageModel.current)
         case .pollinations, .none:
             return PollinationsIllustrator()
         }

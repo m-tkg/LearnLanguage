@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-/// Cloudflare Workers AI（FLUX.1 schnell）でイラストを生成する。
+/// Cloudflare Workers AI でイラストを生成する（モデルは設定で選択・既定は SDXL Lightning）。
 /// 無料枠が日次で付与され可用性が高い。Account ID と API トークンの 2 つを Keychain（BYOK）から読む。
 /// - Account ID: Cloudflare ダッシュボード右側（または URL）に表示される 32 桁の英数字。
 /// - API トークン: 「Workers AI: 読み取り/実行」権限で発行したトークン。
@@ -43,7 +43,7 @@ struct CloudflareIllustrator: IllustrationGenerating {
             request.timeoutInterval = 60
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            request.httpBody = try JSONEncoder().encode(GenerateRequest(prompt: prompt))
+            request.httpBody = try JSONEncoder().encode(GenerateRequest(prompt: prompt, steps: model.steps))
 
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse else {
@@ -58,6 +58,13 @@ struct CloudflareIllustrator: IllustrationGenerating {
                 let retryable = http.statusCode == 429 || (500...599).contains(http.statusCode)
                 return (.failure(reason: "Cloudflare APIエラー(\(http.statusCode))\(message.map { ": \($0)" } ?? "")。"),
                         retryable)
+            }
+            // SDXL 系はバイナリ画像を直接返し、FLUX 系は JSON（base64）で返す。Content-Type で見分ける。
+            if (http.value(forHTTPHeaderField: "Content-Type") ?? "").hasPrefix("image/") {
+                guard !data.isEmpty else {
+                    return (.failure(reason: "画像が返りませんでした。プロンプトを変えて再試行してください。"), false)
+                }
+                return (.success(data), false)
             }
             guard let decoded = try? JSONDecoder().decode(GenerateResponse.self, from: data),
                   let base64 = decoded.result?.image,
@@ -79,9 +86,8 @@ struct CloudflareIllustrator: IllustrationGenerating {
 
     private struct GenerateRequest: Encodable {
         let prompt: String
-        /// 推論ステップ数。schnell は 4 ステップ蒸留モデルで 4 が推奨値。
-        /// 8（上限）だと 96 Neurons/枚、4 だと 57.6 Neurons/枚で無料枠(10,000/日)の持ちが約1.7倍になる。
-        var steps: Int = 4
+        /// 推論ステップ数（モデルにより要否が異なるため `CloudflareImageModel.steps` に従う。nil なら送らない）。
+        let steps: Int?
     }
 
     private struct GenerateResponse: Decodable {

@@ -9,6 +9,7 @@ struct SettingsView: View {
     @AppStorage(IllustratorFactory.providerDefaultsKey) private var imageProvider = ImageProvider.pollinations.rawValue
     @AppStorage(RewriterFactory.providerDefaultsKey) private var rewriteProvider = RewriteProvider.gemini.rawValue
     @AppStorage(GeminiModel.defaultsKey) private var geminiModel = GeminiModel.flashLite.rawValue
+    @AppStorage(CloudflareImageModel.defaultsKey) private var cloudflareImageModel = CloudflareImageModel.sdxlLightning.rawValue
 
     /// Gemini キーが書き換え・画像のどちらかで使われるか。
     private var usesGemini: Bool {
@@ -104,6 +105,16 @@ struct SettingsView: View {
                 }
 
                 if imageProvider == ImageProvider.cloudflare.rawValue {
+                    Section {
+                        Picker("画像モデル", selection: $cloudflareImageModel) {
+                            ForEach(CloudflareImageModel.allCases) { model in
+                                Text(LocalizedStringKey(model.displayName)).tag(model.rawValue)
+                            }
+                        }
+                    } footer: {
+                        Text("「SDXL Lightning」はベータ提供中のため無料枠（Neurons）を消費せず、実質無制限に生成できます。「FLUX schnell」は高品質ですが1枚あたり約173 Neurons を消費します（無料枠は1日10,000 Neurons ≒ 約57枚）。")
+                    }
+
                     Section {
                         TextField("Account ID", text: $cloudflareAccountID)
                             .textInputAutocapitalization(.never)

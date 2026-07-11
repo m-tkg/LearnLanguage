@@ -145,6 +145,26 @@
         }
       }
     },
+    "FLUX schnell（高品質・1日約57枚）" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FLUX schnell (high quality, ~57/day)"
+          }
+        }
+      }
+    },
+    "SDXL Lightning（無料枠を消費しない）" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SDXL Lightning (doesn't consume free quota)"
+          }
+        }
+      }
+    },
     "Flash-Lite（軽量・無料枠が広め）" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1059,6 +1079,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Image Provider"
+          }
+        }
+      }
+    },
+    "画像モデル" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image Model"
+          }
+        }
+      }
+    },
+    "「SDXL Lightning」はベータ提供中のため無料枠（Neurons）を消費せず、実質無制限に生成できます。「FLUX schnell」は高品質ですが1枚あたり約173 Neurons を消費します（無料枠は1日10,000 Neurons ≒ 約57枚）。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"SDXL Lightning\" is in beta and doesn't consume the free quota (Neurons), so generation is effectively unlimited. \"FLUX schnell\" is higher quality but uses about 173 Neurons per image (the free quota is 10,000 Neurons per day ≈ about 57 images)."
           }
         }
       }
