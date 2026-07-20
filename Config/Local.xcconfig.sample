@@ -1,0 +1,3 @@
+// cp Config/Local.xcconfig.sample Config/Local.xcconfig して編集する。
+DEVELOPMENT_TEAM = XXXXXXXXXX
+APP_BUNDLE_ID = com.example.myapp

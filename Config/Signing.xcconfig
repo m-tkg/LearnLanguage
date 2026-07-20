@@ -1,0 +1,9 @@
+// 署名まわりの既定値。自分のアカウントでビルドする場合はこのファイルを編集せず、
+// 同ディレクトリに Local.xcconfig を作って上書きする(git 管理外)。
+// APP_BUNDLE_ID はアプリ本体の Bundle ID。extension / tests はここから派生する。
+
+DEVELOPMENT_TEAM = G72M73C546
+APP_BUNDLE_ID = com.mtkg.LearnLanguage
+
+// "?" 付き include はファイルが無ければ無視される(CI では既定値のまま動く)
+#include? "Local.xcconfig"
