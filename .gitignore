@@ -21,6 +21,7 @@ xcuserdata/
 
 # Secrets (never commit API keys)
 *.xcconfig.local
+Config/Local.xcconfig
 
 # Claude Code session-local state
 .claude/
