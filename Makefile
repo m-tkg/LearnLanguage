@@ -1,7 +1,7 @@
 VERSION := $(shell grep 'MARKETING_VERSION:' project.yml | head -1 | sed -E 's/.*MARKETING_VERSION: *"?([^"]*)"?.*/\1/')
 TAG := v$(VERSION)
 
-.PHONY: release-tag
+.PHONY: release-tag ota
 release-tag:
 	@if [ -z "$(VERSION)" ]; then \
 		echo "error: MARKETING_VERSION not found in project.yml" >&2; \
@@ -28,3 +28,9 @@ release-tag:
 	git tag -a "$(TAG)" -m "Release $(TAG)"
 	git push origin "$(TAG)"
 	@echo "Pushed tag $(TAG); Xcode Cloud will build and distribute it."
+
+# OTA（Over-The-Air）配布。ipa + manifest.plist + index.html を作り、
+# ota.mtkg（miscpi.mtkg の /mnt/storage/ota）へ ssh 配信する。
+# 別サーバへ配るときは OTA_URL を渡す（例: make ota OTA_URL=https://example.com）。
+ota:
+	./Scripts/ota.sh $(OTA_URL)
